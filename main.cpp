@@ -346,7 +346,7 @@ int main(int argc, char **argv)
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 	glutInitWindowSize(screenWidth, screenHeight);
 	glutInitWindowPosition(100, 100);
-	glutCreateWindow("OpenGL FreeGLUT Example: Obj loading");
+	glutCreateWindow("Space Simulation");
 
 	//This initialises glew - it must be called after the window is created.
 	GLenum err = glewInit();
