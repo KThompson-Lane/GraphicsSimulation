@@ -4,8 +4,8 @@
 #ignore visual studio
 .vs/
 
-#Try to ignore x64 maybe remove
-x64/
+#Can't ignore x64 as we need dlls
+#x64/
 
 
 # Compiled Object files
