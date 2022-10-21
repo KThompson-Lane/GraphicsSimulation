@@ -17,47 +17,24 @@ using namespace std;
 
 #include "Images\FreeImage.h"
 
-#include "shaders\Shader.h"
 
-CShader* myShader;  ///shader object 
-CShader* myBasicShader;
+//objects
+#include "Object/Object.h"
 
-//MODEL LOADING
-#include "3DStruct\threeDModel.h"
-#include "Obj\OBJLoader.h"
+Object boxTest = Object();
 
-float amount = 0;
-float temp = 0.002f;
-	
-CThreeDModel boxLeft, boxRight, boxFront;
-CThreeDModel model; //A threeDModel object is needed for each model loaded
-COBJLoader objLoader;	//this object is used to load the 3d models.
 ///END MODEL LOADING
 
 glm::mat4 ProjectionMatrix; // matrix for the orthographic projection
-glm::mat4 ModelViewMatrix;  // matrix for the modelling and viewing
 
-glm::mat4 objectRotation;
-glm::vec3 translation = glm::vec3(0.0, 0.0, 0.0);
-glm::vec3 pos = glm::vec3(0.0f,0.0f,0.0f); //vector for the position of the object.
-
-//Material properties
-float Material_Ambient[4] = {0.1f, 0.1f, 0.1f, 1.0f};
-float Material_Diffuse[4] = {0.8f, 0.8f, 0.5f, 1.0f};
-float Material_Specular[4] = {0.9f,0.9f,0.8f,1.0f};
-float Material_Shininess = 50;
-
-//Light Properties
-float Light_Ambient_And_Diffuse[4] = {0.8f, 0.8f, 0.6f, 1.0f};
-float Light_Specular[4] = {1.0f,1.0f,1.0f,1.0f};
-float LightPos[4] = {0.0f, 0.0f, 1.0f, 0.0f};
-
-//
+//	User Input
 int	mouse_x=0, mouse_y=0;
 bool LeftPressed = false;
 int screenWidth=600, screenHeight=600;
+float rotationSpeed = 0.003;
+float speed = 0.01;
 
-//booleans to handle when the arrow keys are pressed or released.
+//	Rotation input
 bool Left = false;
 bool Right = false;
 bool Up = false;
@@ -65,8 +42,13 @@ bool Down = false;
 bool Home = false;
 bool End = false;
 
-float spin=180;
-float speed=0;
+//	Translation input
+bool W = false;
+bool A = false;
+bool S = false;
+bool D = false;
+bool Q = false;
+bool E = false;
 
 //OPENGL FUNCTION PROTOTYPES
 void display();				//called in winmain to draw everything to the screen
@@ -74,88 +56,21 @@ void reshape(int width, int height);				//called when the window is resized
 void init();				//called in winmain when the program starts.
 void processKeys();         //called in winmain to process keyboard input
 void idle();		//idle function
-void updateTransform(float xinc, float yinc, float zinc);
 
 /*************    START OF OPENGL FUNCTIONS   ****************/
 void display()									
 {
+	//OpenGL Stuff
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	glUseProgram(myShader->GetProgramObjID());  // use the shader
-
-	//Part for displacement shader.
-	amount += temp;
-	if(amount > 1.0f || amount < -1.5f)
-		temp = -temp;
-	//amount = 0;
-	glUniform1f(glGetUniformLocation(myShader->GetProgramObjID(), "displacement"), amount);
-
-	//Set the projection matrix in the shader
-	GLuint projMatLocation = glGetUniformLocation(myShader->GetProgramObjID(), "ProjectionMatrix");  
-	glUniformMatrix4fv(projMatLocation, 1, GL_FALSE, &ProjectionMatrix[0][0]);
-
 	glm::mat4 viewingMatrix = glm::mat4(1.0f);
-	
-	//translation and rotation for view
-	viewingMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0, 0, -50));
-
-	//apply a rotation to the view
-	//static float angle = 0.0f;
-	//angle += 0.01;
-	//viewingMatrix = glm::rotate(viewingMatrix, angle, glm::vec3(1.0f, 0.0f, 0.0));
 
 	//use of glm::lookAt for viewing instead.
-	//viewingMatrix = glm::lookAt(glm::vec3(0,0,0), glm::vec3(0,0,100), glm::vec3(0.0f, 1.0f, 0.0));
-
-	glUniformMatrix4fv(glGetUniformLocation(myShader->GetProgramObjID(), "ViewMatrix"), 1, GL_FALSE, &viewingMatrix[0][0]);
-
-	glUniform4fv(glGetUniformLocation(myShader->GetProgramObjID(), "LightPos"), 1, LightPos);
-	glUniform4fv(glGetUniformLocation(myShader->GetProgramObjID(), "light_ambient"), 1, Light_Ambient_And_Diffuse);
-	glUniform4fv(glGetUniformLocation(myShader->GetProgramObjID(), "light_diffuse"), 1, Light_Ambient_And_Diffuse);
-	glUniform4fv(glGetUniformLocation(myShader->GetProgramObjID(), "light_specular"), 1, Light_Specular);
-
-	glUniform4fv(glGetUniformLocation(myShader->GetProgramObjID(), "material_ambient"), 1, Material_Ambient);
-	glUniform4fv(glGetUniformLocation(myShader->GetProgramObjID(), "material_diffuse"), 1, Material_Diffuse);
-	glUniform4fv(glGetUniformLocation(myShader->GetProgramObjID(), "material_specular"), 1, Material_Specular);
-	glUniform1f(glGetUniformLocation(myShader->GetProgramObjID(), "material_shininess"), Material_Shininess);
-
-	pos.x += objectRotation[2][0]*0.003;
-	pos.y += objectRotation[2][1]*0.003;
-	pos.z += objectRotation[2][2]*0.003;
+	viewingMatrix = glm::lookAt(glm::vec3(0,0,50), glm::vec3(0,0,-50), glm::vec3(0.0f, 1.0f, 0.0));
 	
-	glm::mat4 modelmatrix = glm::translate(glm::mat4(1.0f), pos);
-	ModelViewMatrix = viewingMatrix * modelmatrix * objectRotation;
-	glUniformMatrix4fv(glGetUniformLocation(myShader->GetProgramObjID(), "ModelViewMatrix"), 1, GL_FALSE, &ModelViewMatrix[0][0]);
+	//Object rendering
+	boxTest.render(viewingMatrix, ProjectionMatrix);
 
-	
-	glm::mat3 normalMatrix = glm::inverseTranspose(glm::mat3(ModelViewMatrix));
-	glUniformMatrix3fv(glGetUniformLocation(myShader->GetProgramObjID(), "NormalMatrix"), 1, GL_FALSE, &normalMatrix[0][0]);
-	
-	model.DrawElementsUsingVBO(myShader);
-
-	//Switch to basic shader to draw the lines for the bounding boxes
-	glUseProgram(myBasicShader->GetProgramObjID());
-	projMatLocation = glGetUniformLocation(myBasicShader->GetProgramObjID(), "ProjectionMatrix");
-	glUniformMatrix4fv(projMatLocation, 1, GL_FALSE, &ProjectionMatrix[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(myBasicShader->GetProgramObjID(), "ModelViewMatrix"), 1, GL_FALSE, &ModelViewMatrix[0][0]);
-
-	//model.DrawAllBoxesForOctreeNodes(myBasicShader);
-	//model.DrawBoundingBox(myBasicShader);
-	//model.DrawOctreeLeaves(myBasicShader);
-
-	//switch back to the shader for textures and lighting on the objects.
-	glUseProgram(myShader->GetProgramObjID());  // use the shader
-
-	ModelViewMatrix = glm::translate(viewingMatrix, glm::vec3(0, 0, 0));
-
-	normalMatrix = glm::inverseTranspose(glm::mat3(ModelViewMatrix));
-	glUniformMatrix3fv(glGetUniformLocation(myShader->GetProgramObjID(), "NormalMatrix"), 1, GL_FALSE, &normalMatrix[0][0]);
-
-	glUniformMatrix4fv(glGetUniformLocation(myShader->GetProgramObjID(), "ModelViewMatrix"), 1, GL_FALSE, &ModelViewMatrix[0][0]);
-	boxLeft.DrawElementsUsingVBO(myShader);
-	boxRight.DrawElementsUsingVBO(myShader);
-	//boxFront.drawElementsUsingVBO(myShader);
-
+	//OpenGL Stuff
 	glFlush();
 	glutSwapBuffers();
 }
@@ -164,7 +79,6 @@ void reshape(int width, int height)		// Resize the OpenGL window
 {
 	screenWidth=width; screenHeight = height;           // to ensure the mouse coordinates match 
 														// we will use these values to set the coordinate system
-
 	glViewport(0,0,width,height);						// Reset The Current Viewport
 
 	//Set the projection matrix
@@ -172,71 +86,16 @@ void reshape(int width, int height)		// Resize the OpenGL window
 }
 void init()
 {
+	//Open GL stuff
 	glClearColor(1.0,1.0,1.0,0.0);						//sets the clear colour to yellow
 														//glClear(GL_COLOR_BUFFER_BIT) in the display function
 														//will clear the buffer to this colour
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-
-	myShader = new CShader();
-	//if(!myShader->CreateShaderProgram("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag"))
-	if(!myShader->CreateShaderProgram("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag"))
-	{
-		cout << "failed to load shader" << endl;
-	}		
-
-	myBasicShader = new CShader();
-	if(!myBasicShader->CreateShaderProgram("Basic", "glslfiles/basic.vert", "glslfiles/basic.frag"))
-	{
-		cout << "failed to load shader" << endl;
-	}		
-
-	glUseProgram(myShader->GetProgramObjID());  // use the shader
-
-	glEnable(GL_TEXTURE_2D);
-
-	//lets initialise our object's rotation transformation 
-	//to the identity matrix
-	objectRotation = glm::mat4(1.0f);
-
-	cout << " loading model " << endl;
-	if(objLoader.LoadModel("TestModels/axes.obj"))//returns true if the model is loaded
-	{
-		cout << " model loaded " << endl;		
-
-		//copy data from the OBJLoader object to the threedmodel class
-		model.ConstructModelFromOBJLoader(objLoader);
-
-		//if you want to translate the object to the origin of the screen,
-		//first calculate the centre of the object, then move all the vertices
-		//back so that the centre is on the origin.
-		//model.CalcCentrePoint();
-		//model.CentreOnZero();
-
-	
-		model.InitVBO(myShader);
-	}
-	else
-	{
-		cout << " model failed to load " << endl;
-	}
-	
-
-	
-	if (objLoader.LoadModel("TestModels/boxLeft.obj"))//returns true if the model is loaded
-	{
-		boxLeft.ConstructModelFromOBJLoader(objLoader);
-
-		//Place to centre geometry before creating VBOs.
-
-		boxLeft.InitVBO(myShader);
-	}
-	if (objLoader.LoadModel("TestModels/boxRight.obj"))//returns true if the model is loaded
-	{
-		boxRight.ConstructModelFromOBJLoader(objLoader);
-		boxRight.InitVBO(myShader);
-	}
+	//Object setup
+	boxTest.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
+	boxTest.init("TestModels/axes.obj");
 }
 
 void special(int key, int x, int y)
@@ -263,7 +122,6 @@ void special(int key, int x, int y)
 		break;
 	}
 }
-
 void specialUp(int key, int x, int y)
 {
 	switch (key)
@@ -289,52 +147,116 @@ void specialUp(int key, int x, int y)
 	}
 }
 
+void KeyDown(unsigned char key, int x, int y)
+{
+	switch (key)
+	{
+		case 'w':
+			W = true;
+			break;
+		case 'a':
+			A = true;
+			break;
+		case 's':
+			S = true;
+			break;
+		case 'd':
+			D = true;
+			break;
+		case 'q':
+			Q = true;
+			break;
+		case 'e':
+			E = true;
+			break;
+	}
+}
+void KeyUp(unsigned char key, int x, int y)
+{
+	switch (key)
+	{
+	case 'w':
+		W = false;
+		break;
+	case 'a':
+		A = false;
+		break;
+	case 's':
+		S = false;
+		break;
+	case 'd':
+		D = false;
+		break;
+	case 'q':
+		Q = false;
+		break;
+	case 'e':
+		E = false;
+		break;
+	}
+}
+
 void processKeys()
 {
+	//Rotation input
 	float spinXinc = 0.0f, spinYinc = 0.0f, spinZinc = 0.0f;
 	if (Left)
 	{
-		spinYinc = -0.001f;
+		spinYinc = -rotationSpeed;
 	}
 	if (Right)
 	{
-		spinYinc = 0.001f;
+		spinYinc = rotationSpeed;
 	}
 	if (Up)
 	{
-		spinXinc = 0.001f;
+		spinXinc = rotationSpeed;
 	}
 	if (Down)
 	{
-		spinXinc = -0.001f;
+		spinXinc = -rotationSpeed;
 	}
 	if (Home)
 	{
-		spinZinc = 0.001f;
+		spinZinc = rotationSpeed;
 	}
 	if (End)
 	{
-		spinZinc = -0.001f;
+		spinZinc = -rotationSpeed;
 	}
-	updateTransform(spinXinc, spinYinc, spinZinc);
-}
 
-
-void updateTransform(float xinc, float yinc, float zinc)
-{
-	objectRotation = glm::rotate(objectRotation, xinc, glm::vec3(1,0,0));
-	objectRotation = glm::rotate(objectRotation, yinc, glm::vec3(0,1,0));
-	objectRotation = glm::rotate(objectRotation, zinc, glm::vec3(0,0,1));
+	//Translation input
+	float moveXinc = 0.0f, moveYinc = 0.0f, moveZinc = 0.0f;
+	if (W)
+	{
+		moveYinc = speed;
+	}
+	if (S)
+	{
+		moveYinc = -speed;
+	}
+	if (D)
+	{
+		moveXinc = speed;
+	}
+	if (A)
+	{
+		moveXinc = -speed;
+	}
+	if (Q)
+	{
+		moveZinc = speed;
+	}
+	if (E)
+	{
+		moveZinc = -speed;
+	}
+	boxTest.UpdateTransform(glm::vec3(moveXinc, moveYinc, moveZinc), glm::vec3(spinXinc, spinYinc, spinZinc));
 }
 
 void idle()
 {
-	spin += speed;
-	if(spin > 360)
-		spin = 0;
-
 	processKeys();
-
 	glutPostRedisplay();
 }
 /**************** END OPENGL FUNCTIONS *************************/
@@ -371,6 +293,8 @@ int main(int argc, char **argv)
 
 	glutSpecialFunc(special);
 	glutSpecialUpFunc(specialUp);
+	glutKeyboardFunc(KeyDown);
+	glutKeyboardUpFunc(KeyUp);
 
 	glutIdleFunc(idle);
 

@@ -31,6 +31,7 @@
     <ClCompile Include="shaders\Shader.cpp">
       <Filter>headers\shaders</Filter>
     </ClCompile>
+    <ClCompile Include="Object\Object.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3dStruct\threeDModel.h">
@@ -63,6 +64,7 @@
     <ClInclude Include="shaders\Shader.h">
       <Filter>headers\shaders</Filter>
     </ClInclude>
+    <ClInclude Include="Object\Object.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="headers">

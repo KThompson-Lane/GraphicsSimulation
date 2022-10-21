@@ -1,1 +1,6 @@
-﻿
+﻿  Object.cpp
+  main.cpp
+C:\Users\Kiall\Documents\ThirdYearLearning\GraphicsSimulation\main.cpp(34,28): warning C4305: 'initializing': truncation from 'double' to 'float'
+C:\Users\Kiall\Documents\ThirdYearLearning\GraphicsSimulation\main.cpp(35,19): warning C4305: 'initializing': truncation from 'double' to 'float'
+  Generating Code...
+  SpaceSimulation.vcxproj -> C:\Users\Kiall\Documents\ThirdYearLearning\GraphicsSimulation\x64\Debug\SpaceSimulation.exe
