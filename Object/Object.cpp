@@ -1,16 +1,21 @@
 #include "Object.h"
-/*
-	//Material properties
-	float Material_Ambient[4] = {0.1f, 0.1f, 0.1f, 1.0f};
-	float Material_Diffuse[4] = {0.8f, 0.8f, 0.5f, 1.0f};
-	float Material_Specular[4] = {0.9f,0.9f,0.8f,1.0f};
-	float Material_Shininess = 50;
 
-	//Light Properties
-	float Light_Ambient_And_Diffuse[4] = {0.8f, 0.8f, 0.6f, 1.0f};
-	float Light_Specular[4] = {1.0f,1.0f,1.0f,1.0f};
-	float LightPos[4] = {0.0f, 0.0f, 1.0f, 0.0f};
-*/
+///Material properties (From the .mtl file) 
+// kA 
+float Material_Ambient[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+// kD
+float Material_Diffuse[4] = {0.8f, 0.8f, 0.8f, 1.0f};
+// kS
+float Material_Specular[4] = {0.5f,0.5f,0.5f,1.0f};
+// nI (reflection)
+float Material_Shininess = 50;
+
+//TODO: Move this into a separate class for "lights"
+//Light Properties
+float Light_Ambient_And_Diffuse[4] = {0.8f, 0.8f, 0.6f, 1.0f};
+float Light_Specular[4] = {1.0f,1.0f,1.0f,1.0f};
+float LightPos[4] = {0.0f, 0.0f, 1.0f, 0.0f};
+
 void Object::init(char* modelFile)
 {
 	std::cout << " loading model " << std::endl;
@@ -69,7 +74,7 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix)
 	glUniformMatrix4fv(glGetUniformLocation(objectShader.GetProgramObjID(), "ViewMatrix"), 1, GL_FALSE, &viewingMatrix[0][0]);
 
 	//lighting stuffs
-	/*
+	
 	glUniform4fv(glGetUniformLocation(objectShader.GetProgramObjID(), "LightPos"), 1, LightPos);
 	glUniform4fv(glGetUniformLocation(objectShader.GetProgramObjID(), "light_ambient"), 1, Light_Ambient_And_Diffuse);
 	glUniform4fv(glGetUniformLocation(objectShader.GetProgramObjID(), "light_diffuse"), 1, Light_Ambient_And_Diffuse);
@@ -79,12 +84,13 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix)
 	glUniform4fv(glGetUniformLocation(objectShader.GetProgramObjID(), "material_diffuse"), 1, Material_Diffuse);
 	glUniform4fv(glGetUniformLocation(objectShader.GetProgramObjID(), "material_specular"), 1, Material_Specular);
 	glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), "material_shininess"), Material_Shininess);
-	*/
+	
 
 	//Set the modelview matrix in the shader
 
 	//objectPosition[3][0]
 	//glm::mat4 modelmatrix = glm::translate(objectPosition, glm::vec3(0.0,0.0,0.0));
+
 	ModelViewMatrix = viewingMatrix * objectModelMatrix;
 	glUniformMatrix4fv(glGetUniformLocation(objectShader.GetProgramObjID(), "ModelViewMatrix"), 1, GL_FALSE, &ModelViewMatrix[0][0]);
 
@@ -116,6 +122,9 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix)
 void Object::UpdateTransform(glm::vec3 incTranslation, glm::vec3 incRotation)
 {
 	//First rotate object, then translate it.
+	objectRotation += incRotation;
+	objectPosition += incTranslation;
+
 	objectModelMatrix = glm::rotate(objectModelMatrix, incRotation.x, glm::vec3(1, 0, 0));
 	objectModelMatrix = glm::rotate(objectModelMatrix, incRotation.y, glm::vec3(0, 1, 0));
 	objectModelMatrix = glm::rotate(objectModelMatrix, incRotation.z, glm::vec3(0, 0, 1));
@@ -126,4 +135,38 @@ glm::vec3 Object::GetObjectWorldPosition()
 {
 	//object model matrix is [column][row] notation e.g. Tx Ty Tz = [3][0] [3][1] [3][2]
 	return glm::vec3(objectModelMatrix[3][0], objectModelMatrix[3][1], objectModelMatrix[3][2]);
+}
+
+glm::vec3 Object::GetObjectRotation()
+{
+	return objectRotation;
+}
+
+glm::vec3 Object::Up()
+{
+	//Retrieves the local Up directional vector by first moving the object back to the origin
+	glm::mat4 rotationalMatrix = glm::translate(objectModelMatrix, -objectPosition);
+	return glm::normalize(glm::vec3(rotationalMatrix[1][0], rotationalMatrix[1][1], rotationalMatrix[1][2]));
+}
+
+glm::vec3 Object::Right()
+{
+	//Retrieves the local Up directional vector by first moving the object back to the origin
+	glm::mat4 rotationalMatrix = glm::translate(objectModelMatrix, -objectPosition);
+	return glm::normalize(glm::vec3(rotationalMatrix[0][0], rotationalMatrix[0][1], rotationalMatrix[0][2]));
+}
+glm::vec3 Object::Forward()
+{
+	//Retrieves the local Up directional vector by first moving the object back to the origin
+	glm::mat4 rotationalMatrix = glm::translate(objectModelMatrix, -objectPosition);
+	return glm::normalize(glm::vec3(rotationalMatrix[2][0], rotationalMatrix[2][1], rotationalMatrix[2][2]));
+}
+
+glm::mat4 Object::CameraMount()
+{
+	return glm::translate(objectModelMatrix, glm::vec3(0.0, -3.0, 5.0));
+}
+glm::mat4 Object::CameraTarget()
+{
+	return glm::translate(objectModelMatrix, glm::vec3(0.0, 5.0, 1.0));
 }

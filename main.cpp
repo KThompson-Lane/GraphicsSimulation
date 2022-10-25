@@ -21,7 +21,8 @@ using namespace std;
 //objects
 #include "Object/Object.h"
 
-Object boxTest = Object();
+Object rocketShip = Object();
+Object testPlanet = Object();
 
 ///END MODEL LOADING
 
@@ -31,8 +32,9 @@ glm::mat4 ProjectionMatrix; // matrix for the orthographic projection
 int	mouse_x=0, mouse_y=0;
 bool LeftPressed = false;
 int screenWidth=600, screenHeight=600;
-float rotationSpeed = 0.003;
-float speed = 0.01;
+const float rotationSpeed = 0.01;
+const float speed = 0.05;
+bool SwitchCamera = false;
 
 //	Rotation input
 bool Left = false;
@@ -56,7 +58,7 @@ void reshape(int width, int height);				//called when the window is resized
 void init();				//called in winmain when the program starts.
 void processKeys();         //called in winmain to process keyboard input
 void idle();		//idle function
-
+void PrintPositions(Object* obj);
 /*************    START OF OPENGL FUNCTIONS   ****************/
 void display()									
 {
@@ -64,11 +66,22 @@ void display()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glm::mat4 viewingMatrix = glm::mat4(1.0f);
 
-	//use of glm::lookAt for viewing instead.
-	viewingMatrix = glm::lookAt(glm::vec3(0,0,50), glm::vec3(0,0,-50), glm::vec3(0.0f, 1.0f, 0.0));
-	
+
+	if (SwitchCamera)
+	{
+		//Rocket camera mount
+		glm::vec3 cameraPosition = glm::vec3(rocketShip.CameraMount()[3][0], rocketShip.CameraMount()[3][1], rocketShip.CameraMount()[3][2]);
+		glm::vec3 cameraTarget = glm::vec3(rocketShip.CameraTarget()[3][0], rocketShip.CameraTarget()[3][1], rocketShip.CameraTarget()[3][2]);
+
+		viewingMatrix = glm::lookAt(cameraPosition, cameraTarget, rocketShip.Forward());
+	}
+	else
+	{
+		viewingMatrix = glm::lookAt(glm::vec3(0, 0, 10), glm::vec3(0, 0, -50), glm::vec3(0, 1.0, 0));
+	}
 	//Object rendering
-	boxTest.render(viewingMatrix, ProjectionMatrix);
+	rocketShip.render(viewingMatrix, ProjectionMatrix);
+	testPlanet.render(viewingMatrix, ProjectionMatrix);
 
 	//OpenGL Stuff
 	glFlush();
@@ -87,15 +100,19 @@ void reshape(int width, int height)		// Resize the OpenGL window
 void init()
 {
 	//Open GL stuff
-	glClearColor(1.0,1.0,1.0,0.0);						//sets the clear colour to yellow
+	glClearColor(0.0,0.0,0.0,0.0);						//sets the clear colour to yellow
 														//glClear(GL_COLOR_BUFFER_BIT) in the display function
 														//will clear the buffer to this colour
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
 	//Object setup
-	boxTest.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
-	boxTest.init("TestModels/axes.obj");
+	rocketShip.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
+	rocketShip.init("TestModels/RocketShip/rocket.obj");
+
+	testPlanet.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
+	testPlanet.init("TestModels/TestPlanet/testPlanet.obj");
+	testPlanet.UpdateTransform(glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 }
 
 void special(int key, int x, int y)
@@ -122,6 +139,26 @@ void special(int key, int x, int y)
 		break;
 	}
 }
+
+//DEBUG CODE
+void PrintPositions(Object* obj)
+{
+	glm::vec3 pos = obj->GetObjectWorldPosition();
+	std::cout << "Object Position: X: " << pos.x << " Y: " << pos.y << " Z: " << pos.z << std::endl;
+}
+
+void PrintRotations(Object* obj)
+{
+	glm::vec3 direction = obj->Up();
+	std::cout << "Up: X: " << direction.x << " Y: " << direction.y << " Z: " << direction.z << std::endl;
+
+	direction = obj->Forward();
+	std::cout << "FW: X: " << direction.x << " Y: " << direction.y << " Z: " << direction.z << std::endl;
+
+	direction = obj->Right();
+	std::cout << "Right: X: " << direction.x << " Y: " << direction.y << " Z: " << direction.z << std::endl << std::endl;
+}
+
 void specialUp(int key, int x, int y)
 {
 	switch (key)
@@ -143,7 +180,16 @@ void specialUp(int key, int x, int y)
 		break;
 	case GLUT_KEY_END:
 		End = false;
-		break;		
+		break;	
+	case GLUT_KEY_F1:
+		SwitchCamera = !SwitchCamera;
+		break;
+	case GLUT_KEY_F2:
+		PrintPositions(&rocketShip);
+		break;
+	case GLUT_KEY_F3:
+		PrintRotations(&rocketShip);
+		break;
 	}
 }
 
@@ -251,7 +297,7 @@ void processKeys()
 	{
 		moveZinc = -speed;
 	}
-	boxTest.UpdateTransform(glm::vec3(moveXinc, moveYinc, moveZinc), glm::vec3(spinXinc, spinYinc, spinZinc));
+	rocketShip.UpdateTransform(glm::vec3(moveXinc, moveYinc, moveZinc), glm::vec3(spinXinc, spinYinc, spinZinc));
 }
 
 void idle()
