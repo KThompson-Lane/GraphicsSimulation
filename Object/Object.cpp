@@ -35,7 +35,7 @@ void Object::init(char* modelFile)
 	}
 
 	//Set object position to identityMatrix
-	objectPosition = glm::mat4(1.0);
+	objectModelMatrix = glm::mat4(1.0);
 }
 
 void Object::setupShader(char* shaderName, char* vertPath, char* fragPath)
@@ -83,8 +83,9 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix)
 
 	//Set the modelview matrix in the shader
 
-	glm::mat4 modelmatrix = glm::translate(objectPosition, glm::vec3(0.0,0.0,0.0));
-	ModelViewMatrix = viewingMatrix * modelmatrix;
+	//objectPosition[3][0]
+	//glm::mat4 modelmatrix = glm::translate(objectPosition, glm::vec3(0.0,0.0,0.0));
+	ModelViewMatrix = viewingMatrix * objectModelMatrix;
 	glUniformMatrix4fv(glGetUniformLocation(objectShader.GetProgramObjID(), "ModelViewMatrix"), 1, GL_FALSE, &ModelViewMatrix[0][0]);
 
 	//Set the normal matrix in the shader
@@ -112,11 +113,17 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix)
 	*/
 }
 
-void Object::UpdateTransform(glm::vec3 position, glm::vec3 rotation)
+void Object::UpdateTransform(glm::vec3 incTranslation, glm::vec3 incRotation)
 {
 	//First rotate object, then translate it.
-	objectPosition = glm::rotate(objectPosition, rotation.x, glm::vec3(1, 0, 0));
-	objectPosition = glm::rotate(objectPosition, rotation.y, glm::vec3(0, 1, 0));
-	objectPosition = glm::rotate(objectPosition, rotation.z, glm::vec3(0, 0, 1));
-	objectPosition = glm::translate(objectPosition, position);
+	objectModelMatrix = glm::rotate(objectModelMatrix, incRotation.x, glm::vec3(1, 0, 0));
+	objectModelMatrix = glm::rotate(objectModelMatrix, incRotation.y, glm::vec3(0, 1, 0));
+	objectModelMatrix = glm::rotate(objectModelMatrix, incRotation.z, glm::vec3(0, 0, 1));
+	objectModelMatrix = glm::translate(objectModelMatrix, incTranslation);
+}
+
+glm::vec3 Object::GetObjectWorldPosition()
+{
+	//object model matrix is [column][row] notation e.g. Tx Ty Tz = [3][0] [3][1] [3][2]
+	return glm::vec3(objectModelMatrix[3][0], objectModelMatrix[3][1], objectModelMatrix[3][2]);
 }

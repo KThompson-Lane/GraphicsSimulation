@@ -16,7 +16,7 @@ private:
 	COBJLoader objectLoader;
 	glm::mat4 ModelViewMatrix;  // matrix for the modelling and viewing
 	glm::mat4 objectRotation;
-	glm::mat4 objectPosition;
+	glm::mat4 objectModelMatrix;
 
 //public members
 public:
@@ -31,6 +31,7 @@ public:
 	void init(char*);
 	void setupShader(char*, char*, char*);
 	void render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix);
-	void UpdateTransform(glm::vec3 position, glm::vec3 rotation);
+	void UpdateTransform(glm::vec3 incTranslation, glm::vec3 incRotation);
+	glm::vec3 GetObjectWorldPosition();
 };
 
