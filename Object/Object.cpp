@@ -33,8 +33,8 @@ void Object::init(char* modelFile)
 		//if you want to translate the object to the origin of the screen,
 		//first calculate the centre of the object, then move all the vertices
 		//back so that the centre is on the origin.
-		//model.CalcCentrePoint();
-		//model.CentreOnZero();
+		model.CalcCentrePoint();
+		model.CentreOnZero();
 
 		model.InitVBO(&objectShader);
 	}
@@ -168,7 +168,7 @@ glm::vec3 Object::Forward()
 
 glm::mat4 Object::CameraMount()
 {
-	return glm::translate(objectModelMatrix, glm::vec3(0.0, -3.0, 5.0));
+	return glm::translate(objectModelMatrix, glm::vec3(0.0, -5.0, 3.0));
 }
 glm::mat4 Object::CameraTarget()
 {

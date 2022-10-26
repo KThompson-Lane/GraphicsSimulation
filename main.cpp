@@ -23,7 +23,7 @@ using namespace std;
 
 Object rocketShip = Object();
 Object testPlanet = Object();
-
+Object testMoon = Object();
 ///END MODEL LOADING
 
 glm::mat4 ProjectionMatrix; // matrix for the orthographic projection
@@ -77,11 +77,12 @@ void display()
 	}
 	else
 	{
-		viewingMatrix = glm::lookAt(glm::vec3(0, 0, 10), glm::vec3(0, 0, -50), glm::vec3(0, 1.0, 0));
+		viewingMatrix = glm::lookAt(glm::vec3(0, 0, 40), glm::vec3(0, 0, -50), glm::vec3(0, 1.0, 0));
 	}
 	//Object rendering
 	rocketShip.render(viewingMatrix, ProjectionMatrix);
 	testPlanet.render(viewingMatrix, ProjectionMatrix);
+	testMoon.render(viewingMatrix, ProjectionMatrix);
 
 	//OpenGL Stuff
 	glFlush();
@@ -95,7 +96,7 @@ void reshape(int width, int height)		// Resize the OpenGL window
 	glViewport(0,0,width,height);						// Reset The Current Viewport
 
 	//Set the projection matrix
-	ProjectionMatrix = glm::perspective(glm::radians(60.0f), (GLfloat)screenWidth/(GLfloat)screenHeight, 1.0f, 200.0f);
+	ProjectionMatrix = glm::perspective(glm::radians(40.0f), (GLfloat)screenWidth/(GLfloat)screenHeight, 1.0f, 200.0f);
 }
 void init()
 {
@@ -108,11 +109,15 @@ void init()
 
 	//Object setup
 	rocketShip.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
-	rocketShip.init("TestModels/RocketShip/rocket.obj");
+	rocketShip.init("Models/RocketShip/rocket.obj");
 
 	testPlanet.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
-	testPlanet.init("TestModels/TestPlanet/testPlanet.obj");
+	testPlanet.init("Models/Planets/Planet_1.obj");
 	testPlanet.UpdateTransform(glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+
+	testMoon.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
+	testMoon.init("Models/Planets/Moon_1.obj");
+	testMoon.UpdateTransform(glm::vec3(-35.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 }
 
 void special(int key, int x, int y)
