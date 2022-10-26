@@ -34,26 +34,11 @@ glm::mat4 ProjectionMatrix; // matrix for the orthographic projection
 //	User Input
 int	mouse_x=0, mouse_y=0;
 bool LeftPressed = false;
-int screenWidth=600, screenHeight=600;
-const float rotationSpeed = 0.01;
-const float speed = 0.05;
+int screenWidth = 600, screenHeight = 600;
 bool SwitchCamera = false;
-
-//	Rotation input
-bool Left = false;
-bool Right = false;
-bool Up = false;
-bool Down = false;
-bool Home = false;
-bool End = false;
-
-//	Translation input
-bool W = false;
-bool A = false;
-bool S = false;
-bool D = false;
-bool Q = false;
-bool E = false;
+float Throttle;
+float Pitch, Yaw, Roll;
+bool accelerate, deccelerate;
 
 //OPENGL FUNCTION PROTOTYPES
 void display();				//called in winmain to draw everything to the screen
@@ -123,31 +108,6 @@ void init()
 
 }
 
-void special(int key, int x, int y)
-{
-	switch (key)
-	{
-	case GLUT_KEY_LEFT:
-		Left = true;
-		break;
-	case GLUT_KEY_RIGHT:
-		Right = true;
-		break;
-	case GLUT_KEY_UP:
-		Up = true;
-		break;
-	case GLUT_KEY_DOWN:
-		Down = true;
-		break;
-	case GLUT_KEY_HOME:
-		Home = true;
-		break;
-	case GLUT_KEY_END:
-		End = true;
-		break;
-	}
-}
-
 //DEBUG CODE
 void PrintPositions(Object* obj)
 {
@@ -167,40 +127,42 @@ void PrintRotations(Object* obj)
 	std::cout << "Right: X: " << direction.x << " Y: " << direction.y << " Z: " << direction.z << std::endl << std::endl;
 }
 
+void special(int key, int x, int y)
+{
+	switch (key)
+	{
+		case GLUT_KEY_SHIFT_L:
+			accelerate = true;
+			deccelerate = false;
+			break;
+		case GLUT_KEY_CTRL_L:
+			deccelerate = true;
+			accelerate = false;
+			break;
+	}
+}
+
 void specialUp(int key, int x, int y)
 {
 	switch (key)
 	{
-	case GLUT_KEY_LEFT:
-		Left = false;
-		break;
-	case GLUT_KEY_RIGHT:
-		Right = false;
-		break;
-	case GLUT_KEY_UP:
-		Up = false;
-		break;
-	case GLUT_KEY_DOWN:
-		Down = false;
-		break;
-	case GLUT_KEY_HOME:
-		Home = false;
-		break;
-	case GLUT_KEY_END:
-		End = false;
-		break;	
-	case GLUT_KEY_F1:
-		SwitchCamera = !SwitchCamera;
-		break;
-	case GLUT_KEY_F2:
-		PrintPositions(&rocketShip);
-		PrintPositions(&testPlanet);
-		PrintPositions(&testMoon);
-
-		break;
-	case GLUT_KEY_F3:
-		PrintRotations(&rocketShip);
-		break;
+		case GLUT_KEY_SHIFT_L:
+			accelerate = false;
+			break;
+		case GLUT_KEY_CTRL_L:
+			deccelerate = false;
+			break;
+		case GLUT_KEY_F1:
+			SwitchCamera = !SwitchCamera;
+			break;
+		case GLUT_KEY_F2:
+			PrintPositions(&rocketShip);
+			PrintPositions(&testPlanet);
+			PrintPositions(&testMoon);
+			break;
+		case GLUT_KEY_F3:
+			PrintRotations(&rocketShip);
+			break;
 	}
 }
 
@@ -209,22 +171,22 @@ void KeyDown(unsigned char key, int x, int y)
 	switch (key)
 	{
 		case 'w':
-			W = true;
-			break;
-		case 'a':
-			A = true;
+			Pitch = -1.0f;
 			break;
 		case 's':
-			S = true;
+			Pitch = 1.0f;
+			break;
+		case 'a':
+			Yaw = 1.0f;
 			break;
 		case 'd':
-			D = true;
+			Yaw = -1.0f;
 			break;
 		case 'q':
-			Q = true;
+			Roll = -1.0f;
 			break;
 		case 'e':
-			E = true;
+			Roll = 1.0f;
 			break;
 	}
 }
@@ -233,82 +195,32 @@ void KeyUp(unsigned char key, int x, int y)
 	switch (key)
 	{
 	case 'w':
-		W = false;
+	case 's':
+		Pitch = 0.0f;
 		break;
 	case 'a':
-		A = false;
-		break;
-	case 's':
-		S = false;
-		break;
 	case 'd':
-		D = false;
+		Yaw = 0.0f;
 		break;
 	case 'q':
-		Q = false;
-		break;
 	case 'e':
-		E = false;
+		Roll = 0.0f;
 		break;
 	}
 }
 
 void processKeys()
 {
-	//Rotation input
-	float spinXinc = 0.0f, spinYinc = 0.0f, spinZinc = 0.0f;
-	if (Left)
+	//"Forward" axis is Y
+	if (accelerate && Throttle+0.01f < 1.0f)
 	{
-		spinYinc = -rotationSpeed;
+		Throttle += 0.01f;
 	}
-	if (Right)
+	if (deccelerate && Throttle-0.01f > 0.0f)
 	{
-		spinYinc = rotationSpeed;
+		Throttle -= 0.01f;
 	}
-	if (Up)
-	{
-		spinXinc = rotationSpeed;
-	}
-	if (Down)
-	{
-		spinXinc = -rotationSpeed;
-	}
-	if (Home)
-	{
-		spinZinc = rotationSpeed;
-	}
-	if (End)
-	{
-		spinZinc = -rotationSpeed;
-	}
-
-	//Translation input
-	float moveXinc = 0.0f, moveYinc = 0.0f, moveZinc = 0.0f;
-	if (W)
-	{
-		moveYinc = speed;
-	}
-	if (S)
-	{
-		moveYinc = -speed;
-	}
-	if (D)
-	{
-		moveXinc = speed;
-	}
-	if (A)
-	{
-		moveXinc = -speed;
-	}
-	if (Q)
-	{
-		moveZinc = speed;
-	}
-	if (E)
-	{
-		moveZinc = -speed;
-	}
-	rocketShip.UpdateTransform(glm::vec3(moveXinc, moveYinc, moveZinc), glm::vec3(spinXinc, spinYinc, spinZinc));
+	rocketShip.Move(Throttle, glm::vec3(Pitch, Roll, Yaw));
 }
 
 void idle()

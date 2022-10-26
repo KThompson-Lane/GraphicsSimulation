@@ -4,7 +4,8 @@ class Player : public Object
 {
 	//private members
 private:
-
+	const float rotationSpeed = 0.01;
+	const float speed = 0.05;
 	//public members
 public:
 
@@ -13,7 +14,7 @@ private:
 
 	//public functions
 public:
-	void UpdateTransform(glm::vec3 incTranslation, glm::vec3 incRotation);
+	void Move(float throttle, glm::vec3 incRotation);
 	glm::mat4 CameraMount();
 	glm::mat4 CameraTarget();
 };

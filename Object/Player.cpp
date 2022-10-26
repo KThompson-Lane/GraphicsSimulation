@@ -1,7 +1,9 @@
 #include "Player.h"
 
-void Player::UpdateTransform(glm::vec3 incTranslation, glm::vec3 incRotation)
+void Player::Move(float throttle, glm::vec3 incRotation)
 {
+	incRotation *= rotationSpeed;
+	glm::vec3 incTranslation = { 0.0f, throttle * speed, 0.0f };
 	//First rotate object, then translate it.
 	objectRotation += incRotation;
 	objectPosition += incTranslation;
