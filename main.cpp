@@ -20,10 +20,13 @@ using namespace std;
 
 //objects
 #include "Object/Object.h"
+#include "Object/Player.h"
+#include "Object/Planet.h"
+#include "Object/Moon.h"
 
-Object rocketShip = Object();
-Object testPlanet = Object();
-Object testMoon = Object();
+Player rocketShip = Player();
+Planet testPlanet = Planet();
+Moon testMoon = Moon();
 ///END MODEL LOADING
 
 glm::mat4 ProjectionMatrix; // matrix for the orthographic projection
@@ -81,8 +84,8 @@ void display()
 	}
 	//Object rendering
 	rocketShip.render(viewingMatrix, ProjectionMatrix);
+	//Renders planet and moons
 	testPlanet.render(viewingMatrix, ProjectionMatrix);
-	testMoon.render(viewingMatrix, ProjectionMatrix);
 
 	//OpenGL Stuff
 	glFlush();
@@ -111,13 +114,13 @@ void init()
 	rocketShip.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
 	rocketShip.init("Models/RocketShip/rocket.obj");
 
-	testPlanet.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
-	testPlanet.init("Models/Planets/Planet_1.obj");
-	testPlanet.UpdateTransform(glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-
+	//Setup moon then planet as planet needs moon first.
 	testMoon.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
-	testMoon.init("Models/Planets/Moon_1.obj");
-	testMoon.UpdateTransform(glm::vec3(-35.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	testMoon.init("Models/Planets/Moon_1.obj", 0.05f, -35.0f);
+
+	testPlanet.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
+	testPlanet.init("Models/Planets/Planet_1.obj", &testMoon, glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+
 }
 
 void special(int key, int x, int y)
@@ -191,6 +194,9 @@ void specialUp(int key, int x, int y)
 		break;
 	case GLUT_KEY_F2:
 		PrintPositions(&rocketShip);
+		PrintPositions(&testPlanet);
+		PrintPositions(&testMoon);
+
 		break;
 	case GLUT_KEY_F3:
 		PrintRotations(&rocketShip);

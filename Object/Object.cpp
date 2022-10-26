@@ -123,27 +123,12 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix)
 	*/
 }
 
-void Object::UpdateTransform(glm::vec3 incTranslation, glm::vec3 incRotation)
-{
-	//First rotate object, then translate it.
-	objectRotation += incRotation;
-	objectPosition += incTranslation;
 
-	objectModelMatrix = glm::rotate(objectModelMatrix, incRotation.x, glm::vec3(1, 0, 0));
-	objectModelMatrix = glm::rotate(objectModelMatrix, incRotation.y, glm::vec3(0, 1, 0));
-	objectModelMatrix = glm::rotate(objectModelMatrix, incRotation.z, glm::vec3(0, 0, 1));
-	objectModelMatrix = glm::translate(objectModelMatrix, incTranslation);
-}
 
 glm::vec3 Object::GetObjectWorldPosition()
 {
 	//object model matrix is [column][row] notation e.g. Tx Ty Tz = [3][0] [3][1] [3][2]
 	return glm::vec3(objectModelMatrix[3][0], objectModelMatrix[3][1], objectModelMatrix[3][2]);
-}
-
-glm::vec3 Object::GetObjectRotation()
-{
-	return objectRotation;
 }
 
 glm::vec3 Object::Up()
@@ -166,11 +151,4 @@ glm::vec3 Object::Forward()
 	return glm::normalize(glm::vec3(rotationalMatrix[2][0], rotationalMatrix[2][1], rotationalMatrix[2][2]));
 }
 
-glm::mat4 Object::CameraMount()
-{
-	return glm::translate(objectModelMatrix, glm::vec3(0.0, -5.0, 3.0));
-}
-glm::mat4 Object::CameraTarget()
-{
-	return glm::translate(objectModelMatrix, glm::vec3(0.0, 5.0, 1.0));
-}
+
