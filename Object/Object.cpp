@@ -10,6 +10,10 @@ float Material_Specular[4] = {0.5f,0.5f,0.5f,1.0f};
 // nI (reflection)
 float Material_Shininess = 50;
 
+//Displacement stuff
+float amount = 0.1f;
+float temp = 0.0f;
+
 //TODO: Move this into a separate class for "lights"
 //Light Properties
 float Light_Ambient_And_Diffuse[4] = {0.8f, 0.8f, 0.6f, 1.0f};
@@ -57,14 +61,14 @@ void Object::setupShader(char* shaderName, char* vertPath, char* fragPath)
 void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix)
 {
 	//Displacement stuffs
-	/*
+	
 	//Part for displacement shader.
 	amount += temp;
 	if (amount > 1.0f || amount < -1.5f)
 		temp = -temp;
 	//amount = 0;
 	glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), "displacement"), amount);
-	*/
+	
 
 	//Set the projection matrix in the shader
 	GLuint projMatLocation = glGetUniformLocation(objectShader.GetProgramObjID(), "ProjectionMatrix");
