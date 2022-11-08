@@ -23,11 +23,16 @@ using namespace std;
 #include "Object/Player.h"
 #include "Object/Planet.h"
 #include "Object/Moon.h"
+#include "sphere/Sphere.h"
 
 Player rocketShip = Player();
 Planet testPlanet = Planet();
 Moon testMoon = Moon();
 ///END MODEL LOADING
+
+//TEST BOUNDING SPHERE
+CShader boundShader;
+Sphere sphere = Sphere();
 
 glm::mat4 ProjectionMatrix; // matrix for the orthographic projection
 
@@ -72,7 +77,16 @@ void display()
 	//Renders planet and moons
 	testPlanet.render(viewingMatrix, ProjectionMatrix);
 
+	glDisable(GL_CULL_FACE);
+	//glUseProgram(boundShader.GetProgramObjID());  // use the shader
+	glUseProgram(boundShader.GetProgramObjID());
+	GLuint projMatLocation = glGetUniformLocation(boundShader.GetProgramObjID(), "ProjectionMatrix");
+	glUniformMatrix4fv(projMatLocation, 1, GL_FALSE, &ProjectionMatrix[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(boundShader.GetProgramObjID(), "ModelViewMatrix"), 1, GL_FALSE, &viewingMatrix[0][0]);
+	sphere.render();
 	//OpenGL Stuff
+	glEnable(GL_CULL_FACE);
+
 	glFlush();
 	glutSwapBuffers();
 }
@@ -94,6 +108,16 @@ void init()
 														//will clear the buffer to this colour
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+
+	//TEST BOUNDING SPHERE
+	boundShader = CShader();
+	if (!boundShader.CreateShaderProgram("SimpleShader", "glslfiles/basic.vert", "glslfiles/basic.frag"))
+	{
+		std::cout << "failed to load shader" << std::endl;
+	}
+	sphere.setCentre(0, 0, 0);
+	sphere.setRadius(10);
+	sphere.constructGeometry(&boundShader, 16);
 
 	//Object setup
 	rocketShip.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");

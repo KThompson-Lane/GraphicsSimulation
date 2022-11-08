@@ -60,6 +60,7 @@ void Object::setupShader(char* shaderName, char* vertPath, char* fragPath)
 
 void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix)
 {
+	glUseProgram(objectShader.GetProgramObjID());  // use the shader
 	//Displacement stuffs
 	
 	//Part for displacement shader.
@@ -117,10 +118,9 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix)
 	//model.DrawAllBoxesForOctreeNodes(myBasicShader);
 	//model.DrawBoundingBox(myBasicShader);
 	//model.DrawOctreeLeaves(myBasicShader);
-
-	//switch back to the shader for textures and lighting on the objects.
-	glUseProgram(myShader->GetProgramObjID());  // use the shader
 	*/
+	//switch back to the shader for textures and lighting on the objects.
+	glUseProgram(objectShader.GetProgramObjID());  // use the shader
 }
 
 

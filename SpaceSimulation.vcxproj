@@ -30,6 +30,7 @@
     <ClInclude Include="Object\Planet.h" />
     <ClInclude Include="Object\Player.h" />
     <ClInclude Include="shaders\Shader.h" />
+    <ClInclude Include="sphere\Sphere.h" />
     <ClInclude Include="Structures\Vector3d.h" />
     <ClInclude Include="TextureHandler\TextureHandler.h" />
     <ClInclude Include="Utilities\IntersectionTests.h" />
@@ -46,6 +47,7 @@
     <ClCompile Include="Object\Planet.cpp" />
     <ClCompile Include="Object\Player.cpp" />
     <ClCompile Include="shaders\Shader.cpp" />
+    <ClCompile Include="sphere\Sphere.cpp" />
     <ClCompile Include="Structures\Vector3d.cpp" />
     <ClCompile Include="TextureHandler\TextureHandler.cpp" />
     <ClCompile Include="Utilities\IntersectionTests.cpp" />
