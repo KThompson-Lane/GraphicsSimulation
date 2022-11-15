@@ -83,6 +83,7 @@ public:
 	bool						IsTriangleIntersectingAABB(double boxcenter[DIMENSION_IN_3D],double boxhalfsize[DIMENSION_IN_3D], int PrimIndex);
 	bool						IsVertexIntersectingAABB(double min[DIMENSION_IN_3D], double max[DIMENSION_IN_3D], int VertIndex);
 	void						CalcBoundingBox(double& minX, double& minY, double& minZ, double& maxX, double& maxY, double& maxZ);
+	double						CalcBoundingSphere();
 
 };
 

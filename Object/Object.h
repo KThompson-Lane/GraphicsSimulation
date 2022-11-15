@@ -7,14 +7,18 @@
 #include "../glm/gtc/matrix_transform.hpp"
 #include "../glm/gtc/matrix_inverse.hpp"
 #include "../3dStruct/threeDModel.h"
+#include "../sphere/Sphere.h"
+
 class Object
 {
 //private members
 private:
 	CShader objectShader;
+	CShader boundingShader;
 	char* modelFile;
 	COBJLoader objectLoader;
 	glm::mat4 ModelViewMatrix;  // matrix for the modelling and viewing
+	Sphere boundingSphere;
 
 protected:
 	glm::mat4 objectModelMatrix;
@@ -23,6 +27,7 @@ protected:
 //public members
 public:
 	CThreeDModel model;
+	bool renderBound = false;
 //private functions
 private:
 
@@ -37,6 +42,5 @@ public:
 	glm::vec3 Up();
 	glm::vec3 Right();
 	glm::vec3 Forward();
-
 };
 

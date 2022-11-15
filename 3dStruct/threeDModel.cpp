@@ -410,6 +410,8 @@ bool CThreeDModel::IsTriangleIntersectingAABB(double boxCenter[DIMENSION_IN_3D],
 	return (CIntersectionTests::TriBoxOverlap(boxCenter, boxHalfSize, triVerts) == 1);
 }
 
+
+
 /*
  *	Method	: CalcBoundingBox
  *
@@ -445,6 +447,22 @@ void CThreeDModel::CalcBoundingBox(double& minX, double& minY, double& minZ, dou
 		if (z > maxZ)
 			maxZ = z;
 	}
+}
+double CThreeDModel::CalcBoundingSphere()
+{
+	double maxRadius{};
+	double distance;
+	Vector3d vert;
+	for (int i = 1; i < m_iNumberOfVertices; i++)
+	{
+		vert = m_pvVertices[i];
+		distance = vert.euclideanDistance(m_obCentrePoint);
+		if (maxRadius < distance)
+		{
+			maxRadius = distance;
+		}
+	}
+	return maxRadius;
 }
 
 /*

@@ -36,6 +36,16 @@ void Object::init(char* modelFile)
 		model.CalcCentrePoint();
 		model.CentreOnZero();
 
+		//Create bounding sphere:
+		//TEST BOUNDING SPHERE
+		boundingShader = CShader();
+		if (!boundingShader.CreateShaderProgram("SimpleShader", "glslfiles/basic.vert", "glslfiles/basic.frag"))
+		{
+			std::cout << "failed to load shader" << std::endl;
+		}
+		boundingSphere.setCentre(0, 0, 0);
+		boundingSphere.setRadius(model.CalcBoundingSphere());
+		boundingSphere.constructGeometry(&boundingShader, 16);
 		model.InitVBO(&objectShader);
 	}
 	else
@@ -106,6 +116,20 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix)
 
 	//Do a render
 	model.DrawElementsUsingVBO(&objectShader);
+
+	if (renderBound)
+	{
+		//If we want, render bounding spere
+		glDisable(GL_CULL_FACE);
+		//glUseProgram(boundShader.GetProgramObjID());  // use the shader
+		glUseProgram(boundingShader.GetProgramObjID());
+		GLuint projMatLocation = glGetUniformLocation(boundingShader.GetProgramObjID(), "ProjectionMatrix");
+		glUniformMatrix4fv(projMatLocation, 1, GL_FALSE, &ProjectionMatrix[0][0]);
+		glUniformMatrix4fv(glGetUniformLocation(boundingShader.GetProgramObjID(), "ModelViewMatrix"), 1, GL_FALSE, &ModelViewMatrix[0][0]);
+		boundingSphere.render();
+		//OpenGL Stuff
+		glEnable(GL_CULL_FACE);
+	}
 
 	//bounding box stuffs
 	/*

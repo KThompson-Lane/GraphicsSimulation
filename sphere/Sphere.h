@@ -1,7 +1,7 @@
 
 #include "../GL/glew.h"
 
-class CShader;
+#include "../shaders/Shader.h"
 
 class Sphere
 {
