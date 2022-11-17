@@ -1,10 +1,11 @@
 #include "CelestialBody.h"
 
-void CelestialBody::init(char* modelFile, glm::vec3 position, glm::vec3 rotation)
+void CelestialBody::init(char* modelFile, glm::vec3 position, glm::vec3 rotation, float gravity)
 {
 	Object::init(modelFile);
 	objectPosition = position;
 	objectRotation = glm::quat(glm::radians(rotation));
+	gravitationalPull = GetColliderSphereRadius() * gravity;
 }
 
 void CelestialBody::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider)
@@ -41,4 +42,9 @@ void CelestialBody::SetOrbit(CelestialBody* body, float speed, float distance)
 	orbitingBody = body;
 	orbitalSpeed = speed;
 	orbitDistance = distance;
+}
+
+float CelestialBody::GetGravityDistance()
+{
+	return gravitationalPull;
 }

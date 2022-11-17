@@ -22,6 +22,7 @@ using namespace std;
 #include "Object/Player.h"
 #include "Object/CelestialBody.h"
 
+const float G = 0.0069420f;
 Player rocketShip = Player();
 vector<CelestialBody> Bodies;
 
@@ -112,12 +113,12 @@ void init()
 	//Create mars
 	Bodies.push_back(CelestialBody());
 	Bodies[0].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
-	Bodies[0].init("Models/Planets/Planet_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	Bodies[0].init("Models/Planets/Planet_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f), 1.8);
 
 	//Create moon
 	Bodies.push_back(CelestialBody());
 	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
-	Bodies[1].init("Models/Planets/Moon_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	Bodies[1].init("Models/Planets/Moon_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f), 2.5);
 	Bodies[1].SetOrbit(&Bodies[0], 0.05f, -35.0f);
 }
 
@@ -140,13 +141,10 @@ void ApplyGravity()
 	}
 	glm::vec3 planetPosition = Bodies[closestPlanetIndex].GetObjectWorldPosition();
 
-	//TODO: Add method to planet to retrieve it's gravity field
-	float gravityField = Bodies[closestPlanetIndex].GetColliderSphereRadius() * 1.8;
-	if (nearest <= gravityField)
+	if (nearest <= Bodies[closestPlanetIndex].GetGravityDistance())
 	{
 		glm::vec3 attractDirection = normalize(planetPosition - playerPosition);
-		//TODO: REMOVE MAGIC NUMBER FOR GRAVITY STRENGTH
-		rocketShip.Move(attractDirection, 0.01f);
+		rocketShip.Move(attractDirection, G);
 	}
 }
 
@@ -163,7 +161,7 @@ void CheckCollisions()
 		if (playerDistance <= colliderRadi)
 		{
 			glm::vec3 repulseDirection = normalize(playerPosition - planetPosition);
-			//TODO: Remove magic number for repulsion amount
+			//TODO: If implementing newtonian physics replace this with a real equation based on velocity.
 			rocketShip.Move(repulseDirection, (playerDistance - colliderRadi) + 0.3f);
 		}
 	}
@@ -171,8 +169,6 @@ void CheckCollisions()
 
 void PhysicsSimulation() 
 {
-	//Player rotation is currently broken (try rotating about directional vector)
-	//Move player
 	rocketShip.Fly(Throttle, glm::vec3(Pitch, Roll, Yaw));
 	ApplyGravity();
 	CheckCollisions();
