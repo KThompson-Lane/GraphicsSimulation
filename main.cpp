@@ -30,7 +30,6 @@ vector<Planet> Planets;
 
 ///END MODEL LOADING
 
-//TEST BOUNDING SPHERE
 CShader boundShader;
 
 glm::mat4 ProjectionMatrix; // matrix for the orthographic projection
@@ -61,9 +60,11 @@ void display()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glm::mat4 viewingMatrix = glm::mat4(1.0f);
 
-
 	if (SwitchCamera)
 	{
+		//Camera view from the rocket "cockpit"
+		//TODO: Perhaps add both a "cockpit" view and a 3rd person/chase view
+
 		glm::vec3 cameraPosition = rocketShip.GetObjectWorldPosition();
 		cameraPosition += (rocketShip.Up() * -5.0f);
 		cameraPosition += (rocketShip.Forward() * 3.0f);
@@ -75,8 +76,10 @@ void display()
 	}
 	else
 	{
+		//Random arbitrary camera in space
 		viewingMatrix = glm::lookAt(glm::vec3(0, 0, 100), glm::vec3(0, 0, -50), glm::vec3(0, 1.0, 0));
 	}
+
 	//Player rendering
 	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders);
 	//Render planets
@@ -126,7 +129,7 @@ void ApplyGravity()
 	glm::vec3 playerPosition = rocketShip.GetObjectWorldPosition();
 	//Apply gravity to nearest celestial body
 	float nearest = 1000.0f;
-	int closestPlanetIndex;
+	int closestPlanetIndex = 0;
 	int currentPlanet = 0;
 	for (auto it = Planets.begin(); it != Planets.end(); ++it)
 	{
@@ -180,7 +183,7 @@ void PhysicsSimulation()
 
 
 
-//DEBUG CODE
+//BEGIN DEBUG CODE
 void PrintPositions(Object* obj)
 {
 	glm::vec3 pos = obj->GetObjectWorldPosition();
@@ -198,6 +201,8 @@ void PrintRotations(Object* obj)
 	direction = obj->Side();
 	std::cout << "Right: X: " << direction.x << " Y: " << direction.y << " Z: " << direction.z << std::endl << std::endl;
 }
+//END DEBUG CODE
+
 
 void special(int key, int x, int y)
 {
