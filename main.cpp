@@ -24,8 +24,6 @@ using namespace std;
 #include "Object/Planet.h"
 
 Player rocketShip = Player();
-Planet testMoon = Planet();
-Planet testPlanet = Planet();
 vector<Planet> Planets;
 
 ///END MODEL LOADING
@@ -190,7 +188,7 @@ void PrintPositions(Object* obj)
 	std::cout << "Object Position: X: " << pos.x << " Y: " << pos.y << " Z: " << pos.z << std::endl;
 }
 
-void PrintRotations(Object* obj)
+void PrintDirections(Object* obj)
 {
 	glm::vec3 direction = obj->Up();
 	std::cout << "Up: X: " << direction.x << " Y: " << direction.y << " Z: " << direction.z << std::endl;
@@ -242,7 +240,7 @@ void specialUp(int key, int x, int y)
 			PrintPositions(&rocketShip);
 			break;
 		case GLUT_KEY_F5:
-			PrintRotations(&rocketShip);
+			PrintDirections(&rocketShip);
 			break;
 	}
 }

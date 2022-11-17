@@ -4,7 +4,7 @@ void Planet::init(char* modelFile, glm::vec3 position, glm::vec3 rotation)
 {
 	Object::init(modelFile);
 	objectPosition = position;
-	objectRotation = rotation;
+	objectRotation = glm::quat(glm::radians(rotation));
 }
 
 void Planet::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider)
@@ -21,7 +21,7 @@ void Planet::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool 
 			orbitAmount += 360.0f;
 		}
 
-		//Try to do this without matrix operations if possible.
+		//Try to do this without matrix operations if possible. Quaternions?
 
 		//Create new matrix for orbiting at the position of the body we are orbiting
 		glm::mat4 orbitMatrix = glm::translate(glm::mat4(1.0), orbitingBody->GetObjectWorldPosition());

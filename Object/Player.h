@@ -4,9 +4,8 @@ class Player : public Object
 {
 	//private members
 private:
-	const float rotationSpeed = 1;
+	const float rotationSpeed = 0.02f;
 	const float speed = 0.05;
-	glm::vec3 incTranslation;
 	//public members
 public:
 

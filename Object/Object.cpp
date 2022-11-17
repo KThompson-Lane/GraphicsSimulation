@@ -37,7 +37,6 @@ void Object::init(char* modelFile)
 		model.CentreOnZero();
 
 		//Create bounding sphere:
-		//TEST BOUNDING SPHERE
 		boundingShader = CShader();
 		if (!boundingShader.CreateShaderProgram("SimpleShader", "glslfiles/basic.vert", "glslfiles/basic.frag"))
 		{
@@ -53,8 +52,9 @@ void Object::init(char* modelFile)
 		std::cout << " model failed to load " << std::endl;
 	}
 
-	//Set object position to identityMatrix
+	//Set object model matrix and rotation to identity
 	objectModelMatrix = glm::mat4(1.0);
+	objectRotation = glm::quat(1.0, 0.0, 0.0, 0.0);
 }
 
 void Object::setupShader(char* shaderName, char* vertPath, char* fragPath)
@@ -102,11 +102,9 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool 
 	
 
 	//Set the modelview matrix in the shader
-
 	objectModelMatrix = glm::translate(glm::mat4(1.0), objectPosition);
-	objectModelMatrix = glm::rotate(objectModelMatrix, glm::radians(objectRotation.x), glm::vec3(1, 0, 0));
-	objectModelMatrix = glm::rotate(objectModelMatrix, glm::radians(objectRotation.y), glm::vec3(0, 1, 0));
-	objectModelMatrix = glm::rotate(objectModelMatrix, glm::radians(objectRotation.z), glm::vec3(0, 0, 1));
+	objectModelMatrix *= glm::toMat4(objectRotation);
+
 	ModelViewMatrix = viewingMatrix * objectModelMatrix;
 	glUniformMatrix4fv(glGetUniformLocation(objectShader.GetProgramObjID(), "ModelViewMatrix"), 1, GL_FALSE, &ModelViewMatrix[0][0]);
 
@@ -144,6 +142,7 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool 
 	//model.DrawBoundingBox(myBasicShader);
 	//model.DrawOctreeLeaves(myBasicShader);
 	*/
+
 	//switch back to the shader for textures and lighting on the objects.
 	glUseProgram(objectShader.GetProgramObjID());  // use the shader
 }
@@ -155,7 +154,6 @@ void Object::Move(glm::vec3 direction, float amount)
 
 glm::vec3 Object::GetObjectWorldPosition()
 {
-	//object model matrix is [column][row] notation e.g. Tx Ty Tz = [3][0] [3][1] [3][2]
 	return objectPosition;
 }
 glm::vec3 Object::Side()
