@@ -1,13 +1,14 @@
-#include "Planet.h"
+#include "CelestialBody.h"
 
-void Planet::init(char* modelFile, glm::vec3 position, glm::vec3 rotation)
+void CelestialBody::init(char* modelFile, glm::vec3 position, glm::vec3 rotation, float gravity)
 {
 	Object::init(modelFile);
 	objectPosition = position;
-	objectRotation = rotation;
+	objectRotation = glm::quat(glm::radians(rotation));
+	gravitationalPull = GetColliderSphereRadius() * gravity;
 }
 
-void Planet::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider)
+void CelestialBody::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider)
 {
 	if (orbitingBody != nullptr)
 	{
@@ -21,7 +22,7 @@ void Planet::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool 
 			orbitAmount += 360.0f;
 		}
 
-		//Try to do this without matrix operations if possible.
+		//Try to do this without matrix operations if possible. Quaternions?
 
 		//Create new matrix for orbiting at the position of the body we are orbiting
 		glm::mat4 orbitMatrix = glm::translate(glm::mat4(1.0), orbitingBody->GetObjectWorldPosition());
@@ -36,9 +37,14 @@ void Planet::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool 
 	Object::render(viewingMatrix, ProjectionMatrix, showCollider);
 }
 
-void Planet::SetOrbit(Planet* body, float speed, float distance)
+void CelestialBody::SetOrbit(CelestialBody* body, float speed, float distance)
 {
 	orbitingBody = body;
 	orbitalSpeed = speed;
 	orbitDistance = distance;
+}
+
+float CelestialBody::GetGravityDistance()
+{
+	return gravitationalPull;
 }

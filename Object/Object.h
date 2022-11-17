@@ -9,6 +9,10 @@
 #include "../3dStruct/threeDModel.h"
 #include "../sphere/Sphere.h"
 
+//Angry 4thDimensional spinning noises
+#include "../glm/gtc/quaternion.hpp"
+#include "../glm/gtx/quaternion.hpp"
+
 class Object
 {
 //private members
@@ -23,7 +27,7 @@ private:
 protected:
 	glm::mat4 objectModelMatrix;
 	glm::vec3 objectPosition;
-	glm::vec3 objectRotation;
+	glm::quat objectRotation;
 //public members
 public:
 	CThreeDModel model;
