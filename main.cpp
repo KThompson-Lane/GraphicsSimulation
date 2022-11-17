@@ -22,12 +22,15 @@ using namespace std;
 #include "Object/Object.h"
 #include "Object/Player.h"
 #include "Object/Planet.h"
-#include "Object/Moon.h"
 
 Player rocketShip = Player();
+Planet testMoon = Planet();
 Planet testPlanet = Planet();
-Moon testMoon = Moon();
+vector<Planet> Planets;
+
 ///END MODEL LOADING
+
+CShader boundShader;
 
 glm::mat4 ProjectionMatrix; // matrix for the orthographic projection
 
@@ -39,6 +42,9 @@ bool SwitchCamera = false;
 float Throttle;
 float Pitch, Yaw, Roll;
 bool accelerate, deccelerate;
+
+//Collider drawing
+bool showPlayerCollider, showAllColliders;
 
 //OPENGL FUNCTION PROTOTYPES
 void display();				//called in winmain to draw everything to the screen
@@ -54,25 +60,31 @@ void display()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glm::mat4 viewingMatrix = glm::mat4(1.0f);
 
-
 	if (SwitchCamera)
 	{
-		//Rocket camera mount
-		glm::vec3 cameraPosition = glm::vec3(rocketShip.CameraMount()[3][0], rocketShip.CameraMount()[3][1], rocketShip.CameraMount()[3][2]);
-		glm::vec3 cameraTarget = glm::vec3(rocketShip.CameraTarget()[3][0], rocketShip.CameraTarget()[3][1], rocketShip.CameraTarget()[3][2]);
+		//Camera view from the rocket "cockpit"
+		//TODO: Perhaps add both a "cockpit" view and a 3rd person/chase view
+
+		glm::vec3 cameraPosition = rocketShip.GetObjectWorldPosition();
+		cameraPosition += (rocketShip.Up() * -5.0f);
+		cameraPosition += (rocketShip.Forward() * 3.0f);
+
+		glm::vec3 cameraTarget = rocketShip.GetObjectWorldPosition() + (rocketShip.Up() * 5.0f);
+		cameraTarget += (rocketShip.Forward() * 1.0f);
 
 		viewingMatrix = glm::lookAt(cameraPosition, cameraTarget, rocketShip.Forward());
 	}
 	else
 	{
-		viewingMatrix = glm::lookAt(glm::vec3(0, 0, 40), glm::vec3(0, 0, -50), glm::vec3(0, 1.0, 0));
+		//Random arbitrary camera in space
+		viewingMatrix = glm::lookAt(glm::vec3(0, 0, 100), glm::vec3(0, 0, -50), glm::vec3(0, 1.0, 0));
 	}
-	//Object rendering
-	rocketShip.render(viewingMatrix, ProjectionMatrix);
-	//Renders planet and moons
-	testPlanet.render(viewingMatrix, ProjectionMatrix);
 
-	//OpenGL Stuff
+	//Player rendering
+	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders);
+	//Render planets
+	for (auto it = Planets.begin(); it != Planets.end(); ++it)
+		it->render(viewingMatrix, ProjectionMatrix, showAllColliders);
 	glFlush();
 	glutSwapBuffers();
 }
@@ -95,20 +107,83 @@ void init()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
+
 	//Object setup
 	rocketShip.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
 	rocketShip.init("Models/RocketShip/rocket.obj");
 
-	//Setup moon then planet as planet needs moon first.
-	testMoon.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
-	testMoon.init("Models/Planets/Moon_1.obj", 0.05f, -35.0f);
+	//Create mars
+	Planets.push_back(Planet());
+	Planets[0].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
+	Planets[0].init("Models/Planets/Planet_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
-	testPlanet.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
-	testPlanet.init("Models/Planets/Planet_1.obj", &testMoon, glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-
+	//Create moon
+	Planets.push_back(Planet());
+	Planets[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
+	Planets[1].init("Models/Planets/Moon_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	Planets[1].SetOrbit(&Planets[0], 0.05f, -35.0f);
 }
 
-//DEBUG CODE
+void ApplyGravity()
+{
+	glm::vec3 playerPosition = rocketShip.GetObjectWorldPosition();
+	//Apply gravity to nearest celestial body
+	float nearest = 1000.0f;
+	int closestPlanetIndex = 0;
+	int currentPlanet = 0;
+	for (auto it = Planets.begin(); it != Planets.end(); ++it)
+	{
+		float dist = distance(it->GetObjectWorldPosition(), playerPosition);
+		if (dist < nearest)
+		{
+			nearest = dist;
+			closestPlanetIndex = currentPlanet;
+		}
+		++currentPlanet;
+	}
+	glm::vec3 planetPosition = Planets[closestPlanetIndex].GetObjectWorldPosition();
+
+	//TODO: Add method to planet to retrieve it's gravity field
+	float gravityField = Planets[closestPlanetIndex].GetColliderSphereRadius() * 1.8;
+	if (nearest <= gravityField)
+	{
+		glm::vec3 attractDirection = normalize(planetPosition - playerPosition);
+		//TODO: REMOVE MAGIC NUMBER FOR GRAVITY STRENGTH
+		rocketShip.Move(attractDirection, 0.01f);
+	}
+}
+
+void CheckCollisions()
+{
+	//Check for collisions
+	glm::vec3 playerPosition = rocketShip.GetObjectWorldPosition();
+
+	for (auto it = Planets.begin(); it != Planets.end(); ++it)
+	{
+		glm::vec3 planetPosition = it->GetObjectWorldPosition();
+		float playerDistance = distance(planetPosition, playerPosition);
+		float colliderRadi = it->GetColliderSphereRadius() + rocketShip.GetColliderSphereRadius();
+		if (playerDistance <= colliderRadi)
+		{
+			glm::vec3 repulseDirection = normalize(playerPosition - planetPosition);
+			//TODO: Remove magic number for repulsion amount
+			rocketShip.Move(repulseDirection, (playerDistance - colliderRadi) + 0.3f);
+		}
+	}
+}
+
+void PhysicsSimulation() 
+{
+	//Player rotation is currently broken (try rotating about directional vector)
+	//Move player
+	rocketShip.Fly(Throttle, glm::vec3(Pitch, Roll, Yaw));
+	ApplyGravity();
+	CheckCollisions();
+}
+
+
+
+//BEGIN DEBUG CODE
 void PrintPositions(Object* obj)
 {
 	glm::vec3 pos = obj->GetObjectWorldPosition();
@@ -123,9 +198,11 @@ void PrintRotations(Object* obj)
 	direction = obj->Forward();
 	std::cout << "FW: X: " << direction.x << " Y: " << direction.y << " Z: " << direction.z << std::endl;
 
-	direction = obj->Right();
+	direction = obj->Side();
 	std::cout << "Right: X: " << direction.x << " Y: " << direction.y << " Z: " << direction.z << std::endl << std::endl;
 }
+//END DEBUG CODE
+
 
 void special(int key, int x, int y)
 {
@@ -156,11 +233,15 @@ void specialUp(int key, int x, int y)
 			SwitchCamera = !SwitchCamera;
 			break;
 		case GLUT_KEY_F2:
-			PrintPositions(&rocketShip);
-			PrintPositions(&testPlanet);
-			PrintPositions(&testMoon);
+			showPlayerCollider = !showPlayerCollider;
 			break;
 		case GLUT_KEY_F3:
+			showAllColliders = !showAllColliders;
+			break;
+		case GLUT_KEY_F4:
+			PrintPositions(&rocketShip);
+			break;
+		case GLUT_KEY_F5:
 			PrintRotations(&rocketShip);
 			break;
 	}
@@ -220,11 +301,11 @@ void processKeys()
 	{
 		Throttle -= 0.01f;
 	}
-	rocketShip.Move(Throttle, glm::vec3(Pitch, Roll, Yaw));
 }
 
 void idle()
 {
+	PhysicsSimulation();
 	processKeys();
 	glutPostRedisplay();
 }

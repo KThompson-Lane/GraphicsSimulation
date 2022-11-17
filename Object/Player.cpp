@@ -1,24 +1,37 @@
 #include "Player.h"
 
-void Player::Move(float throttle, glm::vec3 incRotation)
+void Player::Fly(float throttle, glm::vec3 incRotation)
 {
 	incRotation *= rotationSpeed;
-	glm::vec3 incTranslation = { 0.0f, throttle * speed, 0.0f };
-	//First rotate object, then translate it.
 	objectRotation += incRotation;
-	objectPosition += incTranslation;
+	if (objectRotation.x >= 360.0f)
+	{
+		objectRotation.x -= 360.0f;
+	}
+	else if(objectRotation.x < 0.0f)
+	{
+		objectRotation.x += 360.0f;
+	}
 
-	objectModelMatrix = glm::rotate(objectModelMatrix, incRotation.x, glm::vec3(1, 0, 0));
-	objectModelMatrix = glm::rotate(objectModelMatrix, incRotation.y, glm::vec3(0, 1, 0));
-	objectModelMatrix = glm::rotate(objectModelMatrix, incRotation.z, glm::vec3(0, 0, 1));
-	objectModelMatrix = glm::translate(objectModelMatrix, incTranslation);
-}
+	if (objectRotation.x >= 360.0f)
+	{
+		objectRotation.x -= 360.0f;
+	}
+	else if (objectRotation.x < 0.0f)
+	{
+		objectRotation.x += 360.0f;
+	}
 
-glm::mat4 Player::CameraMount()
-{
-	return glm::translate(objectModelMatrix, glm::vec3(0.0, -5.0, 3.0));
-}
-glm::mat4 Player::CameraTarget()
-{
-	return glm::translate(objectModelMatrix, glm::vec3(0.0, 5.0, 1.0));
+		if (objectRotation.x >= 360.0f)
+	{
+		objectRotation.x -= 360.0f;
+	}
+	else if(objectRotation.x < 0.0f)
+	{
+		objectRotation.x += 360.0f;
+	}
+
+	//moves it along the up direction
+	float movementAmount = throttle * speed;
+	objectPosition += Up() * movementAmount;;
 }
