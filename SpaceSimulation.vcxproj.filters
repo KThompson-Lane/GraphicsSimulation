@@ -33,7 +33,6 @@
     </ClCompile>
     <ClCompile Include="Object\Object.cpp" />
     <ClCompile Include="Object\Planet.cpp" />
-    <ClCompile Include="Object\Moon.cpp" />
     <ClCompile Include="Object\Player.cpp" />
     <ClCompile Include="sphere\Sphere.cpp" />
   </ItemGroup>
@@ -70,7 +69,6 @@
     </ClInclude>
     <ClInclude Include="Object\Object.h" />
     <ClInclude Include="Object\Planet.h" />
-    <ClInclude Include="Object\Moon.h" />
     <ClInclude Include="Object\Player.h" />
     <ClInclude Include="sphere\Sphere.h" />
   </ItemGroup>

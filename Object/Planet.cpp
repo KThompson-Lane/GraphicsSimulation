@@ -1,26 +1,44 @@
 #include "Planet.h"
 
-void Planet::init(char* modelFile, Moon* moon)
+void Planet::init(char* modelFile, glm::vec3 position, glm::vec3 rotation)
 {
-	this->moon = moon;
-	Object::init(modelFile);
-}
-
-void Planet::init(char* modelFile, Moon* moon, glm::vec3 position, glm::vec3 rotation)
-{
-	this->moon = moon;
 	Object::init(modelFile);
 	objectPosition = position;
 	objectRotation = rotation;
-	this->moon->SetTransform(position, rotation);
 }
 
 void Planet::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider)
 {
-	if (moon != nullptr)
+	if (orbitingBody != nullptr)
 	{
-		//we have a moon
-		moon->render(viewingMatrix, ProjectionMatrix, showCollider);
+		orbitAmount += orbitalSpeed;
+		if (orbitAmount >= 360.0f)
+		{
+			orbitAmount -= 360.0f;
+		}
+		else if (orbitAmount < 0.0f)
+		{
+			orbitAmount += 360.0f;
+		}
+
+		//Try to do this without matrix operations if possible.
+
+		//Create new matrix for orbiting at the position of the body we are orbiting
+		glm::mat4 orbitMatrix = glm::translate(glm::mat4(1.0), orbitingBody->GetObjectWorldPosition());
+
+		orbitMatrix = glm::rotate(orbitMatrix, glm::radians(orbitAmount), glm::vec3(0.0, 1.0, 0.0));
+		orbitMatrix = glm::translate(orbitMatrix, glm::vec3(orbitDistance, 0.0, 0.0));
+		//Rotate by X then rotate by Y 
+		objectPosition.x = orbitMatrix[3][0];
+		objectPosition.y = orbitMatrix[3][1];
+		objectPosition.z = orbitMatrix[3][2];
 	}
 	Object::render(viewingMatrix, ProjectionMatrix, showCollider);
+}
+
+void Planet::SetOrbit(Planet* body, float speed, float distance)
+{
+	orbitingBody = body;
+	orbitalSpeed = speed;
+	orbitDistance = distance;
 }

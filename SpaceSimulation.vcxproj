@@ -23,7 +23,6 @@
     <ClInclude Include="Box\Box.h" />
     <ClInclude Include="Images\FreeImage.h" />
     <ClInclude Include="Images\ImageLoading.h" />
-    <ClInclude Include="Object\Moon.h" />
     <ClInclude Include="Object\Object.h" />
     <ClInclude Include="Obj\OBJLoader.h" />
     <ClInclude Include="Octree\Octree.h" />
@@ -40,7 +39,6 @@
     <ClCompile Include="Box\Box.cpp" />
     <ClCompile Include="Images\ImageLoading.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Object\Moon.cpp" />
     <ClCompile Include="Object\Object.cpp" />
     <ClCompile Include="Obj\OBJLoader.cpp" />
     <ClCompile Include="Octree\Octree.cpp" />
