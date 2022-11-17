@@ -32,7 +32,7 @@
       <Filter>headers\shaders</Filter>
     </ClCompile>
     <ClCompile Include="Object\Object.cpp" />
-    <ClCompile Include="Object\Planet.cpp" />
+    <ClCompile Include="Object\CelestialBody.cpp" />
     <ClCompile Include="Object\Player.cpp" />
     <ClCompile Include="sphere\Sphere.cpp" />
   </ItemGroup>
@@ -68,7 +68,7 @@
       <Filter>headers\shaders</Filter>
     </ClInclude>
     <ClInclude Include="Object\Object.h" />
-    <ClInclude Include="Object\Planet.h" />
+    <ClInclude Include="Object\CelestialBody.h" />
     <ClInclude Include="Object\Player.h" />
     <ClInclude Include="sphere\Sphere.h" />
   </ItemGroup>

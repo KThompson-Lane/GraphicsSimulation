@@ -1,7 +1,6 @@
 #include <iostream>
 using namespace std;
 
-
 //--- OpenGL ---
 #include "GL\glew.h"
 #include "GL\wglew.h"
@@ -21,10 +20,10 @@ using namespace std;
 //objects
 #include "Object/Object.h"
 #include "Object/Player.h"
-#include "Object/Planet.h"
+#include "Object/CelestialBody.h"
 
 Player rocketShip = Player();
-vector<Planet> Planets;
+vector<CelestialBody> Bodies;
 
 ///END MODEL LOADING
 
@@ -81,7 +80,7 @@ void display()
 	//Player rendering
 	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders);
 	//Render planets
-	for (auto it = Planets.begin(); it != Planets.end(); ++it)
+	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
 		it->render(viewingMatrix, ProjectionMatrix, showAllColliders);
 	glFlush();
 	glutSwapBuffers();
@@ -111,15 +110,15 @@ void init()
 	rocketShip.init("Models/RocketShip/rocket.obj");
 
 	//Create mars
-	Planets.push_back(Planet());
-	Planets[0].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
-	Planets[0].init("Models/Planets/Planet_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	Bodies.push_back(CelestialBody());
+	Bodies[0].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
+	Bodies[0].init("Models/Planets/Planet_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
 	//Create moon
-	Planets.push_back(Planet());
-	Planets[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
-	Planets[1].init("Models/Planets/Moon_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-	Planets[1].SetOrbit(&Planets[0], 0.05f, -35.0f);
+	Bodies.push_back(CelestialBody());
+	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
+	Bodies[1].init("Models/Planets/Moon_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	Bodies[1].SetOrbit(&Bodies[0], 0.05f, -35.0f);
 }
 
 void ApplyGravity()
@@ -129,7 +128,7 @@ void ApplyGravity()
 	float nearest = 1000.0f;
 	int closestPlanetIndex = 0;
 	int currentPlanet = 0;
-	for (auto it = Planets.begin(); it != Planets.end(); ++it)
+	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
 	{
 		float dist = distance(it->GetObjectWorldPosition(), playerPosition);
 		if (dist < nearest)
@@ -139,10 +138,10 @@ void ApplyGravity()
 		}
 		++currentPlanet;
 	}
-	glm::vec3 planetPosition = Planets[closestPlanetIndex].GetObjectWorldPosition();
+	glm::vec3 planetPosition = Bodies[closestPlanetIndex].GetObjectWorldPosition();
 
 	//TODO: Add method to planet to retrieve it's gravity field
-	float gravityField = Planets[closestPlanetIndex].GetColliderSphereRadius() * 1.8;
+	float gravityField = Bodies[closestPlanetIndex].GetColliderSphereRadius() * 1.8;
 	if (nearest <= gravityField)
 	{
 		glm::vec3 attractDirection = normalize(planetPosition - playerPosition);
@@ -156,7 +155,7 @@ void CheckCollisions()
 	//Check for collisions
 	glm::vec3 playerPosition = rocketShip.GetObjectWorldPosition();
 
-	for (auto it = Planets.begin(); it != Planets.end(); ++it)
+	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
 	{
 		glm::vec3 planetPosition = it->GetObjectWorldPosition();
 		float playerDistance = distance(planetPosition, playerPosition);
