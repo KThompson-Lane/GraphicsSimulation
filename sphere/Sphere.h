@@ -25,4 +25,5 @@ public:
 	void render();
 	void setRadius(float rad);
 	void setCentre(float x, float y, float z);
+	float GetRadius();
 };

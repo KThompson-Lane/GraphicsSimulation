@@ -27,7 +27,6 @@ protected:
 //public members
 public:
 	CThreeDModel model;
-	bool renderBound = false;
 //private functions
 private:
 
@@ -37,10 +36,12 @@ public:
 	void init(char* modelFile);
 	void setupShader(char*, char*, char*);
 	//TODO: Change this to take in a collection of Light objects and iterate over them when rendering.
-	void render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix);
+	void render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider);
+	void Move(glm::vec3 direction, float amount);
 	glm::vec3 GetObjectWorldPosition();
+	glm::vec3 Side();
 	glm::vec3 Up();
-	glm::vec3 Right();
 	glm::vec3 Forward();
+	float GetColliderSphereRadius();
 };
 

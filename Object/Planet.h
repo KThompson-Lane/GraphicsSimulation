@@ -16,5 +16,6 @@ private:
 public:
 	void init(char* modelFile, Moon* moon);
 	void init(char* modelFile, Moon* moon, glm::vec3 initialPosition, glm::vec3 initialRotation);
-	void render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix);
+	void render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider);
+
 };

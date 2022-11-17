@@ -34,6 +34,11 @@ void Sphere::setCentre(float x, float y, float z)
 	cz = z;
 }
 
+float Sphere::GetRadius()
+{
+	return r;
+}
+
 void Sphere::render()
 {
 	//draw objects

@@ -68,7 +68,7 @@ void Object::setupShader(char* shaderName, char* vertPath, char* fragPath)
 	glEnable(GL_TEXTURE_2D);
 }
 
-void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix)
+void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider)
 {
 	glUseProgram(objectShader.GetProgramObjID());  // use the shader
 	//Displacement stuffs
@@ -103,9 +103,10 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix)
 
 	//Set the modelview matrix in the shader
 
-	//objectPosition[3][0]
-	//glm::mat4 modelmatrix = glm::translate(objectPosition, glm::vec3(0.0,0.0,0.0));
-
+	objectModelMatrix = glm::translate(glm::mat4(1.0), objectPosition);
+	objectModelMatrix = glm::rotate(objectModelMatrix, glm::radians(objectRotation.x), glm::vec3(1, 0, 0));
+	objectModelMatrix = glm::rotate(objectModelMatrix, glm::radians(objectRotation.y), glm::vec3(0, 1, 0));
+	objectModelMatrix = glm::rotate(objectModelMatrix, glm::radians(objectRotation.z), glm::vec3(0, 0, 1));
 	ModelViewMatrix = viewingMatrix * objectModelMatrix;
 	glUniformMatrix4fv(glGetUniformLocation(objectShader.GetProgramObjID(), "ModelViewMatrix"), 1, GL_FALSE, &ModelViewMatrix[0][0]);
 
@@ -117,7 +118,7 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix)
 	//Do a render
 	model.DrawElementsUsingVBO(&objectShader);
 
-	if (renderBound)
+	if (showCollider)
 	{
 		//If we want, render bounding spere
 		glDisable(GL_CULL_FACE);
@@ -147,32 +148,37 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix)
 	glUseProgram(objectShader.GetProgramObjID());  // use the shader
 }
 
-
+void Object::Move(glm::vec3 direction, float amount)
+{
+	objectPosition += (direction * amount);
+}
 
 glm::vec3 Object::GetObjectWorldPosition()
 {
 	//object model matrix is [column][row] notation e.g. Tx Ty Tz = [3][0] [3][1] [3][2]
-	return glm::vec3(objectModelMatrix[3][0], objectModelMatrix[3][1], objectModelMatrix[3][2]);
+	return objectPosition;
+}
+glm::vec3 Object::Side()
+{
+	//Retrieves the Side direction
+	return glm::normalize(glm::vec3(objectModelMatrix[0][0], objectModelMatrix[0][1], objectModelMatrix[0][2]));
 }
 
 glm::vec3 Object::Up()
 {
-	//Retrieves the local Up directional vector by first moving the object back to the origin
-	glm::mat4 rotationalMatrix = glm::translate(objectModelMatrix, -objectPosition);
-	return glm::normalize(glm::vec3(rotationalMatrix[1][0], rotationalMatrix[1][1], rotationalMatrix[1][2]));
+	//Retrieves the up direction
+	return glm::normalize(glm::vec3(objectModelMatrix[1][0], objectModelMatrix[1][1], objectModelMatrix[1][2]));
 }
 
-glm::vec3 Object::Right()
-{
-	//Retrieves the local Up directional vector by first moving the object back to the origin
-	glm::mat4 rotationalMatrix = glm::translate(objectModelMatrix, -objectPosition);
-	return glm::normalize(glm::vec3(rotationalMatrix[0][0], rotationalMatrix[0][1], rotationalMatrix[0][2]));
-}
 glm::vec3 Object::Forward()
 {
-	//Retrieves the local Up directional vector by first moving the object back to the origin
-	glm::mat4 rotationalMatrix = glm::translate(objectModelMatrix, -objectPosition);
-	return glm::normalize(glm::vec3(rotationalMatrix[2][0], rotationalMatrix[2][1], rotationalMatrix[2][2]));
+	//Retrieves the Forward direction
+	return glm::normalize(glm::vec3(objectModelMatrix[2][0], objectModelMatrix[2][1], objectModelMatrix[2][2]));
+}
+
+float Object::GetColliderSphereRadius()
+{
+	return boundingSphere.GetRadius();
 }
 
 

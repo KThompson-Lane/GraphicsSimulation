@@ -10,19 +10,17 @@ void Planet::init(char* modelFile, Moon* moon, glm::vec3 position, glm::vec3 rot
 {
 	this->moon = moon;
 	Object::init(modelFile);
-	objectModelMatrix = glm::rotate(objectModelMatrix, rotation.x, glm::vec3(1, 0, 0));
-	objectModelMatrix = glm::rotate(objectModelMatrix, rotation.y, glm::vec3(0, 1, 0));
-	objectModelMatrix = glm::rotate(objectModelMatrix, rotation.z, glm::vec3(0, 0, 1));
-	objectModelMatrix = glm::translate(objectModelMatrix, position);
+	objectPosition = position;
+	objectRotation = rotation;
 	this->moon->SetTransform(position, rotation);
 }
 
-void Planet::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix) 
+void Planet::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider)
 {
 	if (moon != nullptr)
 	{
 		//we have a moon
-		moon->render(viewingMatrix, ProjectionMatrix);
+		moon->render(viewingMatrix, ProjectionMatrix, showCollider);
 	}
-	Object::render(viewingMatrix, ProjectionMatrix);
+	Object::render(viewingMatrix, ProjectionMatrix, showCollider);
 }
