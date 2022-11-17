@@ -26,6 +26,8 @@ using namespace std;
 Player rocketShip = Player();
 Planet testMoon = Planet();
 Planet testPlanet = Planet();
+vector<Planet> Planets;
+
 ///END MODEL LOADING
 
 //TEST BOUNDING SPHERE
@@ -77,10 +79,9 @@ void display()
 	}
 	//Player rendering
 	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders);
-	//Render planet
-	testPlanet.render(viewingMatrix, ProjectionMatrix, showAllColliders);
-	testMoon.render(viewingMatrix, ProjectionMatrix, showAllColliders);
-
+	//Render planets
+	for (auto it = Planets.begin(); it != Planets.end(); ++it)
+		it->render(viewingMatrix, ProjectionMatrix, showAllColliders);
 	glFlush();
 	glutSwapBuffers();
 }
@@ -103,49 +104,81 @@ void init()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
+
 	//Object setup
 	rocketShip.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
 	rocketShip.init("Models/RocketShip/rocket.obj");
-	//Setup moon then planet as planet needs moon first.
 
-	testPlanet.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
-	testPlanet.init("Models/Planets/Planet_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	//Create mars
+	Planets.push_back(Planet());
+	Planets[0].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
+	Planets[0].init("Models/Planets/Planet_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
-	testMoon.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
-	testMoon.init("Models/Planets/Moon_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-	testMoon.SetOrbit(&testPlanet, 0.05f, -35.0f);
+	//Create moon
+	Planets.push_back(Planet());
+	Planets[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
+	Planets[1].init("Models/Planets/Moon_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	Planets[1].SetOrbit(&Planets[0], 0.05f, -35.0f);
+}
 
+void ApplyGravity()
+{
+	glm::vec3 playerPosition = rocketShip.GetObjectWorldPosition();
+	//Apply gravity to nearest celestial body
+	float nearest = 1000.0f;
+	int closestPlanetIndex;
+	int currentPlanet = 0;
+	for (auto it = Planets.begin(); it != Planets.end(); ++it)
+	{
+		float dist = distance(it->GetObjectWorldPosition(), playerPosition);
+		if (dist < nearest)
+		{
+			nearest = dist;
+			closestPlanetIndex = currentPlanet;
+		}
+		++currentPlanet;
+	}
+	glm::vec3 planetPosition = Planets[closestPlanetIndex].GetObjectWorldPosition();
 
+	//TODO: Add method to planet to retrieve it's gravity field
+	float gravityField = Planets[closestPlanetIndex].GetColliderSphereRadius() * 1.8;
+	if (nearest <= gravityField)
+	{
+		glm::vec3 attractDirection = normalize(planetPosition - playerPosition);
+		//TODO: REMOVE MAGIC NUMBER FOR GRAVITY STRENGTH
+		rocketShip.Move(attractDirection, 0.01f);
+	}
+}
+
+void CheckCollisions()
+{
+	//Check for collisions
+	glm::vec3 playerPosition = rocketShip.GetObjectWorldPosition();
+
+	for (auto it = Planets.begin(); it != Planets.end(); ++it)
+	{
+		glm::vec3 planetPosition = it->GetObjectWorldPosition();
+		float playerDistance = distance(planetPosition, playerPosition);
+		float colliderRadi = it->GetColliderSphereRadius() + rocketShip.GetColliderSphereRadius();
+		if (playerDistance <= colliderRadi)
+		{
+			glm::vec3 repulseDirection = normalize(playerPosition - planetPosition);
+			//TODO: Remove magic number for repulsion amount
+			rocketShip.Move(repulseDirection, (playerDistance - colliderRadi) + 0.3f);
+		}
+	}
 }
 
 void PhysicsSimulation() 
 {
-
-	//Curently broken, something to do with rotation. Perhaps refactor fly to rotate object, then translate in object forward vector?
+	//Player rotation is currently broken (try rotating about directional vector)
 	//Move player
 	rocketShip.Fly(Throttle, glm::vec3(Pitch, Roll, Yaw));
-	
-	//Check for collisions
-	
-	glm::vec3 playerPosition = rocketShip.GetObjectWorldPosition();
-	glm::vec3 planetPosition = testPlanet.GetObjectWorldPosition();
-	float playerDistance = distance(planetPosition, playerPosition);
-	float colliderRadi = testPlanet.GetColliderSphereRadius() + rocketShip.GetColliderSphereRadius();
-
-	if (playerDistance <= colliderRadi)
-	{
-		glm::vec3 repulseDirection = normalize(playerPosition - planetPosition);
-		rocketShip.Move(repulseDirection,  (playerDistance - colliderRadi) + 0.3f);
-	}
-
-	//Checks for gravity
-	else if (playerDistance <= testPlanet.GetColliderSphereRadius() * 2)
-	{
-		glm::vec3 attractDirection = normalize(planetPosition - playerPosition);
-		rocketShip.Move(attractDirection, 0.01f);
-	}
-	
+	ApplyGravity();
+	CheckCollisions();
 }
+
+
 
 //DEBUG CODE
 void PrintPositions(Object* obj)
@@ -202,8 +235,6 @@ void specialUp(int key, int x, int y)
 			break;
 		case GLUT_KEY_F4:
 			PrintPositions(&rocketShip);
-			PrintPositions(&testPlanet);
-			PrintPositions(&testMoon);
 			break;
 		case GLUT_KEY_F5:
 			PrintRotations(&rocketShip);
