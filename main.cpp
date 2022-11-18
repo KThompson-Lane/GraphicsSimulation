@@ -74,31 +74,34 @@ void display()
 		case 0:
 			//Chase camera view (default)
 			glm::vec3 cameraPosition = rocketShip.GetObjectWorldPosition();
-			cameraPosition += (rocketShip.Up() * 0.5f);
+			cameraPosition += (rocketShip.Up() * 1.5f);
 			cameraPosition += (rocketShip.Forward() * -5.0f);
 
 			glm::vec3 cameraTarget = rocketShip.GetObjectWorldPosition();
-			cameraTarget += (rocketShip.Up() * 0.2f);
+			cameraTarget += (rocketShip.Forward() * 5.0f);
 
-			viewingMatrix = glm::lookAt(cameraPosition, cameraTarget, rocketShip.Up());
+			glm::vec3 cameraDirection = glm::normalize(cameraPosition - cameraTarget);
+			glm::vec3 cameraRight = glm::normalize(glm::cross(rocketShip.Up(), cameraDirection));
+			glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
+
+			viewingMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
 			break;
 		case 1:
 			//cockpit view
 
-			/*
 			cameraPosition = rocketShip.GetObjectWorldPosition();
-			cameraPosition += (rocketShip.Forward() * 0.003f);
-			cameraPosition += (rocketShip.Up() * 0.2f);
-
+			cameraPosition += (rocketShip.Up() * 0.15f);
+			cameraPosition += (rocketShip.Forward() * 0.19f);
 
 			cameraTarget = rocketShip.GetObjectWorldPosition();
-			cameraTarget += (rocketShip.Forward() * 0.11f);
-			
-			glm::vec3 cameraDirection = glm::normalize(cameraPosition - cameraTarget);
-			glm::vec3 cameraRight = glm::normalize(glm::cross(rocketShip.Up(), cameraDirection));
-			glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
+			cameraTarget += (rocketShip.Forward() * 2.0f);
+
+			cameraDirection = glm::normalize(cameraPosition - cameraTarget);
+			cameraRight = glm::normalize(glm::cross(rocketShip.Up(), cameraDirection));
+			cameraUp = glm::cross(cameraDirection, cameraRight);
+
 			viewingMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
-			*/
+			
 			break;
 		default:
 			//Random arbitrary camera in space
@@ -121,7 +124,7 @@ void reshape(int width, int height)		// Resize the OpenGL window
 	glViewport(0,0,width,height);						// Reset The Current Viewport
 
 	//Set the projection matrix
-	ProjectionMatrix = glm::perspective(glm::radians(40.0f), (GLfloat)screenWidth/(GLfloat)screenHeight, 1.0f, 200.0f);
+	ProjectionMatrix = glm::perspective(glm::radians(25.0f), (GLfloat)screenWidth/(GLfloat)screenHeight, 0.001f, 200.0f);
 }
 void init()
 {
