@@ -71,6 +71,7 @@
     <ClInclude Include="Object\CelestialBody.h" />
     <ClInclude Include="Object\Player.h" />
     <ClInclude Include="sphere\Sphere.h" />
+    <ClInclude Include="Light\Light.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="headers">

@@ -1,57 +1,77 @@
 #version 400
-
+#define LIGHTS_NR 1
 in  vec2 ex_TexCoord; //texture coord arriving from the vertex
 in  vec3 ex_Normal;  //normal arriving from the vertex
 
 out vec4 out_Color;   //colour for the pixel
-in vec3 ex_LightDir;  //light direction arriving from the vertex
 
-in vec3 ex_PositionEye;
+in vec3 ex_PositionEye; //Fragment position in eye space arriving from the vertex shader
 
-uniform vec4 light_ambient;
-uniform vec4 light_diffuse;
-uniform vec4 light_specular;
+struct PointLight {    
+    vec3 position;
+    
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
 
-uniform vec4 material_ambient;
-uniform vec4 material_diffuse;
-uniform vec4 material_specular;
-uniform float material_shininess;
+	float constant;
+    float linear;
+    float quadratic;  
+};  
+uniform PointLight pointLights[LIGHTS_NR];
+
+struct Material {
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float shininess;
+}; 
+uniform Material material;
 
 uniform sampler2D DiffuseMap;
 
+
+vec3 PhongPointLightCalc(PointLight light, vec3 normal, vec3 ex_PositionEye, vec3 viewDirection)
+{
+        //Light position is in EYESPACE
+        vec3 lightDir = normalize(light.position - ex_PositionEye);
+
+        // diffuse shading
+        float diff = max(dot(normal, lightDir), 0.0);
+
+        // specular shading
+        vec3 reflectDir = reflect(-lightDir, normal);
+        float spec = pow(max(dot(viewDirection, reflectDir), 0.0), material.shininess);
+
+        // attenuation
+        float dist    = length(light.position - ex_PositionEye);
+        float attenuation =  min(1.0 / (light.constant +
+                                    light.linear * dist +
+                                    light.quadratic * dist * dist)
+                                    ,1);
+
+        // combine results
+        vec3 ambient  = light.ambient * material.ambient  * vec3(texture(DiffuseMap, ex_TexCoord));
+        vec3 diffuse  = light.diffuse * material.diffuse * diff * vec3(texture(DiffuseMap, ex_TexCoord));
+        vec3 specular = light.specular * material.specular * spec * vec3(texture(DiffuseMap, ex_TexCoord));
+        ambient  *= attenuation;
+        diffuse  *= attenuation;
+        specular *= attenuation;
+        return (ambient + diffuse + specular);
+}
+
 void main(void)
 {
-	//out_Color = texture(DiffuseMap, ex_TexCoord); //show texture values
-
-	//out_Color = vec4(ex_Normal,1.0); //Show normals
-
-	//out_Color = vec4(ex_TexCoord,0.0,1.0); //show texture coords
 
 	//Calculate lighting
-	vec3 n, L;
-	vec4 color;
-	float NdotL;
-	
-	n = normalize(ex_Normal);
-	L = normalize(ex_LightDir);
+	vec3 color;
 
-	vec3 v = normalize(-ex_PositionEye);
-	vec3 r = normalize(-reflect(L, n));
-	
-	float RdotV = max(0.0, dot(r, v));
+    //fragment position is in eyespace
+    for(int i = 0; i < LIGHTS_NR; i++)
+    {
+        color += PhongPointLightCalc(pointLights[i], normalize(ex_Normal), ex_PositionEye, normalize(ex_PositionEye));
+    }
 
-	NdotL = max(dot(n, L),0.0);
-
-	color = light_ambient * material_ambient;
-	
-	if(NdotL > 0.0) 
-	{
-		color += (light_ambient * material_diffuse * NdotL);
-	}
-
-	color += material_specular * light_specular * pow(RdotV, material_shininess);
-
-	//out_Color = color;  //show just lighting
-
-    out_Color = color * texture(DiffuseMap, ex_TexCoord); //show texture and lighting
+   out_Color = vec4(color, 1.0) * texture(DiffuseMap, ex_TexCoord); //show texture and lighting
 }
+

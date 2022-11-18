@@ -25,8 +25,12 @@ using namespace std;
 const float G = 0.0069420f;
 Player rocketShip = Player();
 vector<CelestialBody> Bodies;
-
+vector<PointLight> lights;
 ///END MODEL LOADING
+
+//Lighting
+#include "Light/Light.h"
+PointLight light;
 
 CShader boundShader;
 
@@ -40,9 +44,16 @@ bool SwitchCamera = false;
 float Throttle;
 float Pitch, Yaw, Roll;
 bool accelerate, deccelerate;
-
+int CameraIndex;
 //Collider drawing
 bool showPlayerCollider, showAllColliders;
+
+
+//DEBUG CODE
+float cameraY = 0.0001f;
+float targetY = 0.0001f;
+float cameraZ = 0.0001f;
+float targetZ = 0.0001f;
 
 //OPENGL FUNCTION PROTOTYPES
 void display();				//called in winmain to draw everything to the screen
@@ -58,31 +69,50 @@ void display()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glm::mat4 viewingMatrix = glm::mat4(1.0f);
 
-	if (SwitchCamera)
+	switch(CameraIndex)
 	{
-		//Camera view from the rocket "cockpit"
-		//TODO: Perhaps add both a "cockpit" view and a 3rd person/chase view
+		case 0:
+			//Chase camera view (default)
+			glm::vec3 cameraPosition = rocketShip.GetObjectWorldPosition();
+			cameraPosition += (rocketShip.Up() * 1.5f);
+			cameraPosition += (rocketShip.Forward() * -5.0f);
 
-		glm::vec3 cameraPosition = rocketShip.GetObjectWorldPosition();
-		cameraPosition += (rocketShip.Up() * -5.0f);
-		cameraPosition += (rocketShip.Forward() * 3.0f);
+			glm::vec3 cameraTarget = rocketShip.GetObjectWorldPosition();
+			cameraTarget += (rocketShip.Forward() * 5.0f);
 
-		glm::vec3 cameraTarget = rocketShip.GetObjectWorldPosition() + (rocketShip.Up() * 5.0f);
-		cameraTarget += (rocketShip.Forward() * 1.0f);
+			glm::vec3 cameraDirection = glm::normalize(cameraPosition - cameraTarget);
+			glm::vec3 cameraRight = glm::normalize(glm::cross(rocketShip.Up(), cameraDirection));
+			glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
 
-		viewingMatrix = glm::lookAt(cameraPosition, cameraTarget, rocketShip.Forward());
-	}
-	else
-	{
-		//Random arbitrary camera in space
-		viewingMatrix = glm::lookAt(glm::vec3(0, 0, 100), glm::vec3(0, 0, -50), glm::vec3(0, 1.0, 0));
+			viewingMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
+			break;
+		case 1:
+			//cockpit view
+
+			cameraPosition = rocketShip.GetObjectWorldPosition();
+			cameraPosition += (rocketShip.Up() * 0.15f);
+			cameraPosition += (rocketShip.Forward() * 0.19f);
+
+			cameraTarget = rocketShip.GetObjectWorldPosition();
+			cameraTarget += (rocketShip.Forward() * 2.0f);
+
+			cameraDirection = glm::normalize(cameraPosition - cameraTarget);
+			cameraRight = glm::normalize(glm::cross(rocketShip.Up(), cameraDirection));
+			cameraUp = glm::cross(cameraDirection, cameraRight);
+
+			viewingMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
+			
+			break;
+		default:
+			//Random arbitrary camera in space
+			viewingMatrix = glm::lookAt(glm::vec3(0, 0, 100), glm::vec3(0, 0, -50), glm::vec3(0, 1.0, 0));
 	}
 
 	//Player rendering
-	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders);
+	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders, lights);
 	//Render planets
 	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
-		it->render(viewingMatrix, ProjectionMatrix, showAllColliders);
+		it->render(viewingMatrix, ProjectionMatrix, showAllColliders, lights);
 	glFlush();
 	glutSwapBuffers();
 }
@@ -94,7 +124,7 @@ void reshape(int width, int height)		// Resize the OpenGL window
 	glViewport(0,0,width,height);						// Reset The Current Viewport
 
 	//Set the projection matrix
-	ProjectionMatrix = glm::perspective(glm::radians(40.0f), (GLfloat)screenWidth/(GLfloat)screenHeight, 1.0f, 200.0f);
+	ProjectionMatrix = glm::perspective(glm::radians(25.0f), (GLfloat)screenWidth/(GLfloat)screenHeight, 0.001f, 200.0f);
 }
 void init()
 {
@@ -105,19 +135,29 @@ void init()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
+	lights.push_back(PointLight());
+	//Create simple light
+	lights[0].ambient = {0.8, 0.8, 0.8};
+	lights[0].diffuse = { 0.8, 0.8, 0.8 };
+	lights[0].specular = glm::vec3(1.0);
+	lights[0].position = glm::vec3(0, 0, 1.0f);
+
+	lights[0].constant = 1.0f;
+	lights[0].linear = 0.007;
+	lights[0].quadratic = 0.0002;
 
 	//Object setup
-	rocketShip.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
-	rocketShip.init("Models/RocketShip/rocket.obj");
+	rocketShip.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
+	rocketShip.init("Models/FinalShip/FinalShip.obj");
 
 	//Create mars
 	Bodies.push_back(CelestialBody());
-	Bodies[0].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
+	Bodies[0].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[0].init("Models/Planets/Planet_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f), 1.8);
 
 	//Create moon
 	Bodies.push_back(CelestialBody());
-	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
+	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[1].init("Models/Planets/Moon_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f), 2.5);
 	Bodies[1].SetOrbit(&Bodies[0], 0.05f, -35.0f);
 }
@@ -169,7 +209,7 @@ void CheckCollisions()
 
 void PhysicsSimulation() 
 {
-	rocketShip.Fly(Throttle, glm::vec3(Pitch, Roll, Yaw));
+	rocketShip.Fly(Throttle, glm::vec3(Pitch, Yaw, Roll));
 	ApplyGravity();
 	CheckCollisions();
 }
@@ -223,7 +263,8 @@ void specialUp(int key, int x, int y)
 			deccelerate = false;
 			break;
 		case GLUT_KEY_F1:
-			SwitchCamera = !SwitchCamera;
+			if (++CameraIndex == 3)
+				CameraIndex = 0;
 			break;
 		case GLUT_KEY_F2:
 			showPlayerCollider = !showPlayerCollider;
@@ -279,6 +320,36 @@ void KeyUp(unsigned char key, int x, int y)
 	case 'q':
 	case 'e':
 		Roll = 0.0f;
+		break;
+
+	//DEBUG CODE
+	case 'i':
+		cameraY += 0.001f;
+		break;
+	case 'k':
+		cameraY -= 0.001f;
+		break;
+	case 'j':
+		cameraZ += 0.001f;
+		break;
+	case 'u':
+		cameraZ -= 0.001f;
+		break;
+
+	case 'I':
+		targetY += 0.001f;
+		break;
+	case 'K':
+		targetY -= 0.001f;
+		break;
+	case 'J':
+		targetZ += 0.001f;
+		break;
+	case 'U':
+		targetZ -= 0.001f;
+		break;
+	case 'P':
+		std::cout << "CameraY: " << cameraY<< " CameraZ: " << cameraZ << " TargetY " << targetY << " TargetZ " << targetZ << std::endl << std::endl;
 		break;
 	}
 }

@@ -8,7 +8,7 @@ void CelestialBody::init(char* modelFile, glm::vec3 position, glm::vec3 rotation
 	gravitationalPull = GetColliderSphereRadius() * gravity;
 }
 
-void CelestialBody::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider)
+void CelestialBody::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, std::vector<PointLight>& lights)
 {
 	if (orbitingBody != nullptr)
 	{
@@ -34,7 +34,7 @@ void CelestialBody::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix
 		objectPosition.y = orbitMatrix[3][1];
 		objectPosition.z = orbitMatrix[3][2];
 	}
-	Object::render(viewingMatrix, ProjectionMatrix, showCollider);
+	Object::render(viewingMatrix, ProjectionMatrix, showCollider, lights);
 }
 
 void CelestialBody::SetOrbit(CelestialBody* body, float speed, float distance)
