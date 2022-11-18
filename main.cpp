@@ -25,12 +25,12 @@ using namespace std;
 const float G = 0.0069420f;
 Player rocketShip = Player();
 vector<CelestialBody> Bodies;
-
+vector<PointLight> lights;
 ///END MODEL LOADING
 
 //Lighting
 #include "Light/Light.h"
-Light light;
+PointLight light;
 
 CShader boundShader;
 
@@ -83,10 +83,10 @@ void display()
 	}
 
 	//Player rendering
-	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders, light);
+	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders, lights);
 	//Render planets
 	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
-		it->render(viewingMatrix, ProjectionMatrix, showAllColliders, light);
+		it->render(viewingMatrix, ProjectionMatrix, showAllColliders, lights);
 	glFlush();
 	glutSwapBuffers();
 }
@@ -109,11 +109,16 @@ void init()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
+	lights.push_back(PointLight());
 	//Create simple light
-	light.ambient = { 0.8, 0.8, 0.8 };
-	light.diffuse = { 0.8, 0.8, 0.8 };
-	light.specular = glm::vec3(1.0);
-	light.position = glm::vec3(0, 0, 1.0f);
+	lights[0].ambient = {0.8, 0.8, 0.8};
+	lights[0].diffuse = { 0.8, 0.8, 0.8 };
+	lights[0].specular = glm::vec3(1.0);
+	lights[0].position = glm::vec3(0, 0, 1.0f);
+
+	lights[0].constant = 1.0f;
+	lights[0].linear = 0.007;
+	lights[0].quadratic = 0.0002;
 
 	//Object setup
 	rocketShip.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");

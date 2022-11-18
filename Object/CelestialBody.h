@@ -17,7 +17,7 @@ private:
 	//public functions
 public:
 	void init(char* modelFile, glm::vec3 initialPosition, glm::vec3 initialRotation, float gravity);
-	void render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, Light& light);
+	void render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, std::vector<PointLight>& lights);
 	void SetOrbit(CelestialBody* orbitingBody, float speed, float distance);
 	float GetGravityDistance();
 };
