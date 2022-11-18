@@ -1,24 +1,20 @@
 #include "Object.h"
 
-///Material properties (From the .mtl file) 
-// kA 
-float Material_Ambient[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-// kD
-float Material_Diffuse[4] = {0.8f, 0.8f, 0.8f, 1.0f};
-// kS
-float Material_Specular[4] = {0.5f,0.5f,0.5f,1.0f};
-// nI (reflection)
-float Material_Shininess = 50;
+struct Material{
+	//kA
+	glm::vec3 ambient;
+	//kD
+	glm::vec3 diffuse;
+	//kS
+	glm::vec3 specular;
+	//nI
+	float shininess;
+};
+Material material;
 
 //Displacement stuff
 float amount = 0.1f;
 float temp = 0.0f;
-
-//TODO: Move this into a separate class for "lights"
-//Light Properties
-float Light_Ambient_And_Diffuse[4] = {0.8f, 0.8f, 0.6f, 1.0f};
-float Light_Specular[4] = {1.0f,1.0f,1.0f,1.0f};
-float LightPos[4] = {0.0f, 0.0f, 1.0f, 0.0f};
 
 void Object::init(char* modelFile)
 {
@@ -64,11 +60,18 @@ void Object::setupShader(char* shaderName, char* vertPath, char* fragPath)
 	{
 		std::cout << "failed to load shader" << std::endl;
 	}
+
+	//REMOVE THIS AND INSTEAD SET IN OBJ LOAD
+	material.ambient = glm::vec3(1.0f, 1.0f, 1.0f);
+	material.diffuse = glm::vec3(0.8f, 0.8f, 0.8f);
+	material.specular = glm::vec3(0.5f, 0.5f, 0.5f);
+	material.shininess = 50.0f;
+
 	glUseProgram(objectShader.GetProgramObjID());  // use the shader
 	glEnable(GL_TEXTURE_2D);
 }
 
-void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider)
+void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, Light& light)
 {
 	glUseProgram(objectShader.GetProgramObjID());  // use the shader
 	//Displacement stuffs
@@ -89,16 +92,15 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool 
 	glUniformMatrix4fv(glGetUniformLocation(objectShader.GetProgramObjID(), "ViewMatrix"), 1, GL_FALSE, &viewingMatrix[0][0]);
 
 	//lighting stuffs
-	
-	glUniform4fv(glGetUniformLocation(objectShader.GetProgramObjID(), "LightPos"), 1, LightPos);
-	glUniform4fv(glGetUniformLocation(objectShader.GetProgramObjID(), "light_ambient"), 1, Light_Ambient_And_Diffuse);
-	glUniform4fv(glGetUniformLocation(objectShader.GetProgramObjID(), "light_diffuse"), 1, Light_Ambient_And_Diffuse);
-	glUniform4fv(glGetUniformLocation(objectShader.GetProgramObjID(), "light_specular"), 1, Light_Specular);
+	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "LightPos"), light.position.x, light.position.y, light.position.z);
+	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "light.ambient"), light.ambient.x, light.ambient.y, light.ambient.z);
+	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "light.diffuse"), light.diffuse.x, light.diffuse.y, light.diffuse.z);
+	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "light.specular"), light.specular.x, light.specular.y, light.specular.z);
 
-	glUniform4fv(glGetUniformLocation(objectShader.GetProgramObjID(), "material_ambient"), 1, Material_Ambient);
-	glUniform4fv(glGetUniformLocation(objectShader.GetProgramObjID(), "material_diffuse"), 1, Material_Diffuse);
-	glUniform4fv(glGetUniformLocation(objectShader.GetProgramObjID(), "material_specular"), 1, Material_Specular);
-	glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), "material_shininess"), Material_Shininess);
+	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "material.ambient"), material.ambient.x, material.ambient.y, material.ambient.z);
+	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "material.diffuse"), material.diffuse.x, material.diffuse.y, material.diffuse.z);
+	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "material.specular"), material.specular.x, material.specular.y, material.specular.z);
+	glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), "material.shininess"), material.shininess);
 	
 
 	//Set the modelview matrix in the shader

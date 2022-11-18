@@ -6,30 +6,30 @@ in  vec3 ex_Normal;  //normal arriving from the vertex
 out vec4 out_Color;   //colour for the pixel
 in vec3 ex_LightDir;  //light direction arriving from the vertex
 
-in vec3 ex_PositionEye;
+in vec3 ex_PositionEye; //Fragment position in eye space arriving from the vertex shader
 
-uniform vec4 light_ambient;
-uniform vec4 light_diffuse;
-uniform vec4 light_specular;
+struct Light {
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+};
+uniform Light light;  
 
-uniform vec4 material_ambient;
-uniform vec4 material_diffuse;
-uniform vec4 material_specular;
-uniform float material_shininess;
+struct Material {
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float shininess;
+}; 
+uniform Material material;
 
 uniform sampler2D DiffuseMap;
 
 void main(void)
 {
-	//out_Color = texture(DiffuseMap, ex_TexCoord); //show texture values
-
-	//out_Color = vec4(ex_Normal,1.0); //Show normals
-
-	//out_Color = vec4(ex_TexCoord,0.0,1.0); //show texture coords
-
 	//Calculate lighting
 	vec3 n, L;
-	vec4 color;
+	vec3 color;
 	float NdotL;
 	
 	n = normalize(ex_Normal);
@@ -41,17 +41,14 @@ void main(void)
 	float RdotV = max(0.0, dot(r, v));
 
 	NdotL = max(dot(n, L),0.0);
-
-	color = light_ambient * material_ambient;
+	color = light.ambient * material.ambient;
 	
 	if(NdotL > 0.0) 
 	{
-		color += (light_ambient * material_diffuse * NdotL);
+		color += (light.ambient * material.diffuse * NdotL);
 	}
 
-	color += material_specular * light_specular * pow(RdotV, material_shininess);
+	color += material.specular * light.specular * pow(RdotV, material.shininess);
 
-	//out_Color = color;  //show just lighting
-
-    out_Color = color * texture(DiffuseMap, ex_TexCoord); //show texture and lighting
+    out_Color = vec4(color, 1.0) * texture(DiffuseMap, ex_TexCoord); //show texture and lighting
 }

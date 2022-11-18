@@ -13,6 +13,9 @@
 #include "../glm/gtc/quaternion.hpp"
 #include "../glm/gtx/quaternion.hpp"
 
+//Lighting
+#include "../Light/Light.h"
+
 class Object
 {
 //private members
@@ -40,7 +43,7 @@ public:
 	void init(char* modelFile);
 	void setupShader(char*, char*, char*);
 	//TODO: Change this to take in a collection of Light objects and iterate over them when rendering.
-	void render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider);
+	void render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, Light& light);
 	void Move(glm::vec3 direction, float amount);
 	glm::vec3 GetObjectWorldPosition();
 	glm::vec3 Side();

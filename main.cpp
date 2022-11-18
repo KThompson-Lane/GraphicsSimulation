@@ -28,6 +28,10 @@ vector<CelestialBody> Bodies;
 
 ///END MODEL LOADING
 
+//Lighting
+#include "Light/Light.h"
+Light light;
+
 CShader boundShader;
 
 glm::mat4 ProjectionMatrix; // matrix for the orthographic projection
@@ -79,10 +83,10 @@ void display()
 	}
 
 	//Player rendering
-	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders);
+	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders, light);
 	//Render planets
 	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
-		it->render(viewingMatrix, ProjectionMatrix, showAllColliders);
+		it->render(viewingMatrix, ProjectionMatrix, showAllColliders, light);
 	glFlush();
 	glutSwapBuffers();
 }
@@ -105,19 +109,24 @@ void init()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
+	//Create simple light
+	light.ambient = { 0.8, 0.8, 0.8 };
+	light.diffuse = { 0.8, 0.8, 0.8 };
+	light.specular = glm::vec3(1.0);
+	light.position = glm::vec3(0, 0, 1.0f);
 
 	//Object setup
-	rocketShip.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
+	rocketShip.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	rocketShip.init("Models/RocketShip/rocket.obj");
 
 	//Create mars
 	Bodies.push_back(CelestialBody());
-	Bodies[0].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
+	Bodies[0].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[0].init("Models/Planets/Planet_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f), 1.8);
 
 	//Create moon
 	Bodies.push_back(CelestialBody());
-	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformations.frag");
+	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[1].init("Models/Planets/Moon_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f), 2.5);
 	Bodies[1].SetOrbit(&Bodies[0], 0.05f, -35.0f);
 }

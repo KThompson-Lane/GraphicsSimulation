@@ -23,6 +23,7 @@
     <ClInclude Include="Box\Box.h" />
     <ClInclude Include="Images\FreeImage.h" />
     <ClInclude Include="Images\ImageLoading.h" />
+    <ClInclude Include="Light\Light.h" />
     <ClInclude Include="Object\Object.h" />
     <ClInclude Include="Obj\OBJLoader.h" />
     <ClInclude Include="Octree\Octree.h" />

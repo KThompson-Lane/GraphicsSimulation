@@ -9,7 +9,7 @@ in  vec3 in_Position;  // Position coming in
 in  vec2 in_TexCoord;  // texture coordinate coming in
 in  vec3 in_Normal;    // vertex normal used for lighting
 
-uniform vec4 LightPos;  // light position
+uniform vec3 LightPos;  // light position
 
 out vec2 ex_TexCoord;  // exiting texture coord
 out vec3 ex_Normal;    // exiting normal transformed by the normal matrix
@@ -30,5 +30,5 @@ void main(void)
 
 	ex_PositionEye = vec3((ModelViewMatrix * vec4(newVertexPos, 1.0)));
 
-	ex_LightDir = vec3(ViewMatrix * LightPos);
+	ex_LightDir = vec3(ViewMatrix * vec4(LightPos, 1));
 }
