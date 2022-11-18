@@ -12,6 +12,6 @@ void Player::Fly(float throttle, glm::vec3 incRotation)
 	
 	objectRotation = (yaw * pitch * roll * objectRotation);
 
-	//moves it along the up direction
-	objectPosition += Up() * throttle * speed;;
+	//moves it forward
+	objectPosition += Forward() * throttle * speed;;
 }
