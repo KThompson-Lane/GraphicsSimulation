@@ -22,7 +22,7 @@ using namespace std;
 #include "Object/Player.h"
 #include "Object/CelestialBody.h"
 
-const float G = 0.0069420f;
+const float G = 0.069420f;
 Player rocketShip = Player();
 vector<CelestialBody> Bodies;
 vector<PointLight> lights;
@@ -43,6 +43,8 @@ int screenWidth = 600, screenHeight = 600;
 bool SwitchCamera = false;
 float Throttle;
 float Pitch, Yaw, Roll;
+float VerticleThrottle;
+
 bool accelerate, deccelerate;
 int CameraIndex;
 //Collider drawing
@@ -51,12 +53,6 @@ bool showPlayerCollider, showAllColliders;
 //Physics code
 float deltaTime;
 float lastFrameTime = 1000.0f;
-
-//DEBUG CODE
-float cameraY = 0.0001f;
-float targetY = 0.0001f;
-float cameraZ = 0.0001f;
-float targetZ = 0.0001f;
 
 //OPENGL FUNCTION PROTOTYPES
 void display();				//called in winmain to draw everything to the screen
@@ -162,7 +158,7 @@ void init()
 	Bodies.push_back(CelestialBody());
 	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[1].init("Models/Planets/Moon_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f), 2.5);
-	Bodies[1].SetOrbit(&Bodies[0], 0.05f, -35.0f);
+	Bodies[1].SetOrbit(&Bodies[0], 0.0005f, -35.0f);
 }
 
 void ApplyGravity()
@@ -187,7 +183,45 @@ void ApplyGravity()
 	if (nearest <= Bodies[closestPlanetIndex].GetGravityDistance())
 	{
 		glm::vec3 attractDirection = normalize(planetPosition - playerPosition);
-		rocketShip.Move(attractDirection, G);
+		//calculate gravity strength
+		float m1 = rocketShip.GetColliderSphereRadius();
+		float m2 = Bodies[closestPlanetIndex].GetColliderSphereRadius();
+
+		float strength = G * ((m1 * m2) / (nearest * nearest));
+		rocketShip.Move(attractDirection, strength);
+	}
+}
+void ApplyOrbits()
+{
+	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
+	{
+		if (it->orbitingBody != nullptr)
+		{
+			it->orbitAmount += (it->orbitalSpeed*deltaTime);
+			if (it->orbitAmount >= 360.0f)
+			{
+				it->orbitAmount -= 360.0f;
+			}
+			else if (it->orbitAmount < 0.0f)
+			{
+				it->orbitAmount += 360.0f;
+			}
+
+			//Try to do this without matrix operations if possible. Quaternions?
+
+			//Create new matrix for orbiting at the position of the body we are orbiting
+			glm::mat4 orbitMatrix = glm::translate(glm::mat4(1.0), it->orbitingBody->GetObjectWorldPosition());
+
+			orbitMatrix = glm::rotate(orbitMatrix, glm::radians(it->orbitAmount), glm::vec3(0.0, 1.0, 0.0));
+			orbitMatrix = glm::translate(orbitMatrix, glm::vec3(it->orbitDistance, 0.0, 0.0));
+
+			//Rotate by X then rotate by Y 
+			glm::vec3 objectPosition;
+			objectPosition.x = orbitMatrix[3][0];
+			objectPosition.y = orbitMatrix[3][1];
+			objectPosition.z = orbitMatrix[3][2];
+			it->SetPosition(objectPosition);
+		}
 	}
 }
 
@@ -204,19 +238,40 @@ void CheckCollisions()
 		if (playerDistance <= colliderRadi)
 		{
 			glm::vec3 repulseDirection = normalize(playerPosition - planetPosition);
+
+			float Rp = playerDistance - rocketShip.GetColliderSphereRadius();
+			float Rc = playerDistance - it->GetColliderSphereRadius();
+			float P = playerDistance - (Rp + Rc);
+
 			//TODO: If implementing newtonian physics replace this with a real equation based on velocity.
-			rocketShip.Move(repulseDirection, (playerDistance - colliderRadi)+0.1f);
+			rocketShip.Move(repulseDirection, P);
 		}
 	}
+}
+
+void PlayerMovement()
+{
+	//Calculate rotation increments based on player input
+	float yawInput = (Yaw * rocketShip.GetRotationSpeed()) * deltaTime;
+	float pitchInput = (Pitch * rocketShip.GetRotationSpeed()) * deltaTime;
+	float rollInput = (Roll * rocketShip.GetRotationSpeed()) * deltaTime;
+	rocketShip.Rotate(pitchInput, yawInput, rollInput);
+
+	//Calculate player forward thrust
+	rocketShip.Move(rocketShip.Forward(), (Throttle * rocketShip.GetSpeed()) * deltaTime);
+	//Calculate player vertical thrust
+	rocketShip.Move(rocketShip.Up(), (VerticleThrottle * 0.003) * deltaTime);
 }
 
 void PhysicsSimulation() 
 {
 	float currentTime = glutGet(GLUT_ELAPSED_TIME);
 	deltaTime = currentTime - lastFrameTime;
-	rocketShip.Fly(Throttle, glm::vec3(Pitch, Yaw, Roll));
+	lastFrameTime = currentTime;
 	ApplyGravity();
+	ApplyOrbits();
 	CheckCollisions();
+	PlayerMovement();
 }
 
 
@@ -308,6 +363,9 @@ void KeyDown(unsigned char key, int x, int y)
 		case 'e':
 			Roll = 1.0f;
 			break;
+		case ' ':
+			VerticleThrottle = 1.0f;
+			break;
 	}
 }
 void KeyUp(unsigned char key, int x, int y)
@@ -326,35 +384,8 @@ void KeyUp(unsigned char key, int x, int y)
 	case 'e':
 		Roll = 0.0f;
 		break;
-
-	//DEBUG CODE
-	case 'i':
-		cameraY += 0.001f;
-		break;
-	case 'k':
-		cameraY -= 0.001f;
-		break;
-	case 'j':
-		cameraZ += 0.001f;
-		break;
-	case 'u':
-		cameraZ -= 0.001f;
-		break;
-
-	case 'I':
-		targetY += 0.001f;
-		break;
-	case 'K':
-		targetY -= 0.001f;
-		break;
-	case 'J':
-		targetZ += 0.001f;
-		break;
-	case 'U':
-		targetZ -= 0.001f;
-		break;
-	case 'P':
-		std::cout << "CameraY: " << cameraY<< " CameraZ: " << cameraZ << " TargetY " << targetY << " TargetZ " << targetZ << std::endl << std::endl;
+	case ' ':
+		VerticleThrottle = 0.0f;
 		break;
 	}
 }
