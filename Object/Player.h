@@ -4,8 +4,8 @@ class Player : public Object
 {
 	//private members
 private:
-	const float rotationSpeed = 0.02f;
-	const float speed = 0.05;
+	const float rotationSpeed = 0.002f;
+	const float speed = 0.005;
 	//public members
 public:
 
@@ -14,6 +14,7 @@ private:
 
 	//public functions
 public:
-	void Fly(float throttle, glm::vec3 incRotation);
+	float GetSpeed();
+	float GetRotationSpeed();
 };
 

@@ -163,6 +163,14 @@ void Object::Move(glm::vec3 direction, float amount)
 	objectPosition += (direction * amount);
 }
 
+void Object::Rotate(float pitchIn, float yawIn, float rollIn)
+{
+	glm::quat pitch = glm::angleAxis(pitchIn, Side());
+	glm::quat yaw = glm::angleAxis(yawIn, Up());
+	glm::quat roll = glm::angleAxis(rollIn, Forward());
+	objectRotation = (pitch * yaw * roll * objectRotation);
+}
+
 glm::vec3 Object::GetObjectWorldPosition()
 {
 	return objectPosition;

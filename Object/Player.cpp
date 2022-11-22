@@ -1,17 +1,11 @@
 #include "Player.h"
 
-void Player::Fly(float throttle, glm::vec3 incRotation)
+float Player::GetSpeed()
 {
-	float yawInput = incRotation.x * rotationSpeed;
-	float pitchInput = incRotation.y * rotationSpeed;
-	float RollInput = incRotation.z * rotationSpeed;
+	return speed;
+}
 
-	glm::quat yaw = glm::angleAxis(yawInput, Side());
-	glm::quat pitch = glm::angleAxis(pitchInput, Up());
-	glm::quat roll = glm::angleAxis(RollInput, Forward());
-	
-	objectRotation = (yaw * pitch * roll * objectRotation);
-
-	//moves it forward
-	objectPosition += Forward() * throttle * speed;;
+float Player::GetRotationSpeed()
+{
+	return rotationSpeed;
 }
