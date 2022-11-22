@@ -48,6 +48,9 @@ int CameraIndex;
 //Collider drawing
 bool showPlayerCollider, showAllColliders;
 
+//Physics code
+float deltaTime;
+float lastFrameTime = 1000.0f;
 
 //DEBUG CODE
 float cameraY = 0.0001f;
@@ -202,13 +205,15 @@ void CheckCollisions()
 		{
 			glm::vec3 repulseDirection = normalize(playerPosition - planetPosition);
 			//TODO: If implementing newtonian physics replace this with a real equation based on velocity.
-			rocketShip.Move(repulseDirection, (playerDistance - colliderRadi) + 0.3f);
+			rocketShip.Move(repulseDirection, (playerDistance - colliderRadi)+0.1f);
 		}
 	}
 }
 
 void PhysicsSimulation() 
 {
+	float currentTime = glutGet(GLUT_ELAPSED_TIME);
+	deltaTime = currentTime - lastFrameTime;
 	rocketShip.Fly(Throttle, glm::vec3(Pitch, Yaw, Roll));
 	ApplyGravity();
 	CheckCollisions();
