@@ -56,7 +56,7 @@ vec3 PhongPointLightCalc(PointLight light, vec3 normal, vec3 ex_PositionEye, vec
         ambient  *= attenuation;
         diffuse  *= attenuation;
         specular *= attenuation;
-        return (ambient + diffuse + specular);
+        return (ambient + diffuse);
 }
 
 void main(void)
@@ -70,7 +70,7 @@ void main(void)
     //fragment position is in eyespace
     for(int i = 0; i < LIGHTS_NR; i++)
     {
-        color += PhongPointLightCalc(pointLights[i], normalize(ex_Normal), ex_PositionEye, normalize(ex_PositionEye));
+        color += PhongPointLightCalc(pointLights[i], normal, ex_PositionEye, normalize(ex_PositionEye));
     }
 
     out_Color = vec4(color, 1.0);

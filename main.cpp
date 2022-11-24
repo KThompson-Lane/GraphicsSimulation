@@ -46,7 +46,7 @@ float Pitch, Yaw, Roll;
 float VerticleThrottle;
 
 bool accelerate, deccelerate;
-int CameraIndex = 2;
+int CameraIndex;
 //Collider drawing
 bool showPlayerCollider, showAllColliders;
 
@@ -104,7 +104,7 @@ void display()
 			break;
 		default:
 			//Random arbitrary camera in space
-			viewingMatrix = glm::lookAt(glm::vec3(0, 0, 10), glm::vec3(0, 0, -50), glm::vec3(0, 1.0, 0));
+			viewingMatrix = glm::lookAt(glm::vec3(0, 0, 100), glm::vec3(0, 0, -50), glm::vec3(0, 1.0, 0));
 	}
 
 	//Player rendering
@@ -123,7 +123,7 @@ void reshape(int width, int height)		// Resize the OpenGL window
 	glViewport(0,0,width,height);						// Reset The Current Viewport
 
 	//Set the projection matrix
-	ProjectionMatrix = glm::perspective(glm::radians(25.0f), (GLfloat)screenWidth/(GLfloat)screenHeight, 0.001f, 200.0f);
+	ProjectionMatrix = glm::perspective(glm::radians(25.0f), (GLfloat)screenWidth/(GLfloat)screenHeight, 0.001f, 400.0f);
 }
 void init()
 {
@@ -139,7 +139,7 @@ void init()
 	lights[0].ambient = {0.8, 0.8, 0.8};
 	lights[0].diffuse = { 0.8, 0.8, 0.8 };
 	lights[0].specular = glm::vec3(1.0);
-	lights[0].position = glm::vec3(0, 0, 1.0f);
+	lights[0].position = glm::vec3(35.0f, 0, 80.0f);
 
 	lights[0].constant = 1.0f;
 	lights[0].linear = 0.007;
@@ -148,6 +148,15 @@ void init()
 	//Object setup
 	rocketShip.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	rocketShip.init("Models/Ship/Ship.obj");
+	rocketShip.Move(glm::vec3(1.0, 0.0, 0.0), 45.0f);
+	rocketShip.Move(glm::vec3(0.0, 0.0, 1.0), 80.0f);
+	rocketShip.Rotate(0.0, -90.0f, 0.0);
+	//Create Star
+	Bodies.push_back(CelestialBody());
+	Bodies[0].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
+	Bodies[0].init("Models/Bodies/Delmar/Delmar.obj", glm::vec3(0.0, 0.0f, 0.0), glm::vec3(0.0f, 0.0f, 0.0f), 1.8);
+	Bodies[0].Move(glm::vec3(1.0, 0.0, 0.0), 30.0f);
+	Bodies[0].Move(glm::vec3(0.0, 0.0, 1.0), 80.0f);
 
 	//Create mars
 	//Bodies.push_back(CelestialBody());
@@ -268,9 +277,9 @@ void PhysicsSimulation()
 	float currentTime = glutGet(GLUT_ELAPSED_TIME);
 	deltaTime = currentTime - lastFrameTime;
 	lastFrameTime = currentTime;
-	ApplyGravity();
-	ApplyOrbits();
-	CheckCollisions();
+	//ApplyGravity();
+	//ApplyOrbits();
+	//CheckCollisions();
 	PlayerMovement();
 }
 
@@ -405,7 +414,7 @@ void processKeys()
 
 void idle()
 {
-	//PhysicsSimulation();
+	PhysicsSimulation();
 	processKeys();
 	glutPostRedisplay();
 }
