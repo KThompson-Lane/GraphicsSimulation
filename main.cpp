@@ -46,7 +46,7 @@ float Pitch, Yaw, Roll;
 float VerticleThrottle;
 
 bool accelerate, deccelerate;
-int CameraIndex;
+int CameraIndex = 2;
 //Collider drawing
 bool showPlayerCollider, showAllColliders;
 
@@ -104,7 +104,7 @@ void display()
 			break;
 		default:
 			//Random arbitrary camera in space
-			viewingMatrix = glm::lookAt(glm::vec3(0, 0, 100), glm::vec3(0, 0, -50), glm::vec3(0, 1.0, 0));
+			viewingMatrix = glm::lookAt(glm::vec3(0, 0, 10), glm::vec3(0, 0, -50), glm::vec3(0, 1.0, 0));
 	}
 
 	//Player rendering
@@ -147,18 +147,18 @@ void init()
 
 	//Object setup
 	rocketShip.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
-	rocketShip.init("Models/FinalShip/FinalShip.obj");
+	rocketShip.init("Models/Ship/Ship.obj");
 
 	//Create mars
-	Bodies.push_back(CelestialBody());
-	Bodies[0].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
-	Bodies[0].init("Models/Planets/Planet_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f), 1.8);
+	//Bodies.push_back(CelestialBody());
+	//Bodies[0].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
+	//Bodies[0].init("Models/Planets/Planet_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f), 1.8);
 
 	//Create moon
-	Bodies.push_back(CelestialBody());
-	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
-	Bodies[1].init("Models/Planets/Moon_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f), 2.5);
-	Bodies[1].SetOrbit(&Bodies[0], 0.0005f, -35.0f);
+	//Bodies.push_back(CelestialBody());
+	//Bodies[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
+	//Bodies[1].init("Models/Planets/Moon_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f), 2.5);
+	//Bodies[1].SetOrbit(&Bodies[0], 0.0005f, -35.0f);
 }
 
 void ApplyGravity()
@@ -405,7 +405,7 @@ void processKeys()
 
 void idle()
 {
-	PhysicsSimulation();
+	//PhysicsSimulation();
 	processKeys();
 	glutPostRedisplay();
 }

@@ -1,0 +1,17 @@
+# Blender MTL File: 'SpaceShip.blend'
+# Material Count: 1
+
+newmtl Ship_Material
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.600000 0.600000 0.600000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1
+map_Bump RocketShip_Normal.png
+map_Kd RocketShip_Diffuse.png
+map_Ke RocketShip_Emission.png
+map_Ks RocketShip_Specular.png
+map_Ns RocketShip_Roughness.png

@@ -17,7 +17,7 @@ const int NUM_OF_VBOS_WITHOUT_TRI_IDS	= 3;
 class COctree;
 class ObjFace;
 class CShader;
-
+class ObjMat;
 /************************************************************
 *  Class: ThreeDModel
 * 
@@ -43,6 +43,7 @@ private:
 	ObjFace*					m_pobTriangles;
 
 	std::vector<std::tuple<int, int, int>>	m_vuiFaceIndexRangeForTrisWithSameTexture;
+	std::vector<ObjMat> m_modelMaterials;
 
 	unsigned int				m_uiNumOfVBOs;
 	GLuint*						m_puiVBOs;

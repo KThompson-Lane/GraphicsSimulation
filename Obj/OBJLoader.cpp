@@ -163,8 +163,20 @@ bool COBJLoader::LoadMTLFile(const char* mainName, const char* filename)
 			//cout << "newmtl" <<endl;
 			if (foundNewMaterial)
 			{
-				string s = actualPath + "\\" + newMaterial.m_carrTextureName;
-				newMaterial.m_iGLTextureIndex = CTextureHandler::LookUpTexture(s);
+				string s = actualPath + "\\" + newMaterial.m_carrTextureName_Diffuse;
+				newMaterial.m_iGLTextureIndex_Diffuse = CTextureHandler::LookUpTexture(s);
+
+				if (newMaterial.m_carrTextureName_Roughness[0] != ' ')
+				{
+					s = actualPath + "\\" + newMaterial.m_carrTextureName_Roughness;
+					newMaterial.m_iGLTextureIndex_Roughness = CTextureHandler::LookUpTexture(s);
+				}
+
+				if (newMaterial.m_carrTextureName_Normal[0] != ' ')
+				{
+					s = actualPath + "\\" + newMaterial.m_carrTextureName_Normal;
+					newMaterial.m_iGLTextureIndex_Normal = CTextureHandler::LookUpTexture(s);
+				}
 
 				m_vMats.push_back(newMaterial);
 
@@ -267,10 +279,53 @@ bool COBJLoader::LoadMTLFile(const char* mainName, const char* filename)
 
 			fin >> ws;
 
-			sscanf_s(line, "%s", &newMaterial.m_carrTextureName, _countof(line));
+			sscanf_s(line, "%s", &newMaterial.m_carrTextureName_Diffuse, _countof(line));
 
 		}
 
+		else if (identifierStr == "map_Ke")
+		//EMISSION NOT YET IMPLEMENTED
+		{
+
+		fin.getline(line, 255); //textureName
+
+		fin >> ws;
+		//sscanf_s(line, "%s", &newMaterial.m_carrTextureName_Diffuse, _countof(line));
+
+		}
+
+		else if (identifierStr == "map_Ks")
+		//SPECULAR NOT YET IMPLEMENTED
+		{
+
+		fin.getline(line, 255); //textureName
+
+		fin >> ws;
+		//Not yet implemented
+		//sscanf_s(line, "%s", &newMaterial.m_carrTextureName_Diffuse, _countof(line));
+
+		}
+
+		else if (identifierStr == "map_Ns")
+		//Roughness
+		{
+
+		fin.getline(line, 255); //textureName
+		fin >> ws;
+		sscanf_s(line, "%s", &newMaterial.m_carrTextureName_Roughness, _countof(line));
+
+		}
+
+		else if (identifierStr == "map_Bump")
+		//Normals
+		{
+
+		fin.getline(line, 255); //textureName
+
+		fin >> ws;
+		sscanf_s(line, "%s", &newMaterial.m_carrTextureName_Normal, _countof(line));
+
+		}
 		else if (identifierStr == "map_Ka")//skip not used
 
 		{
@@ -295,13 +350,28 @@ bool COBJLoader::LoadMTLFile(const char* mainName, const char* filename)
 
 	if (foundNewMaterial)
 	{
-		string s = actualPath + "\\" + newMaterial.m_carrTextureName;
-		newMaterial.m_iGLTextureIndex = CTextureHandler::LookUpTexture(s);
+		string s = actualPath + "\\" + newMaterial.m_carrTextureName_Diffuse;
+		newMaterial.m_iGLTextureIndex_Diffuse = CTextureHandler::LookUpTexture(s);
 
-		cout << "MATERIAL " << newMaterial.m_carrTextureName << " " << newMaterial.m_iGLTextureIndex << endl;
+		if (newMaterial.m_carrTextureName_Roughness[0] != ' ')
+		{
+			s = actualPath + "\\" + newMaterial.m_carrTextureName_Roughness;
+			newMaterial.m_iGLTextureIndex_Roughness = CTextureHandler::LookUpTexture(s);
+		}
+		
+		if (newMaterial.m_carrTextureName_Normal[0] != ' ')
+		{
+			s = actualPath + "\\" + newMaterial.m_carrTextureName_Normal;
+			newMaterial.m_iGLTextureIndex_Normal = CTextureHandler::LookUpTexture(s);
+		}
+
 
 		m_vMats.push_back(newMaterial);
 
+		cout << "MATERIAL " << newMaterial.m_carrMatName 
+			<< " Diffuse Index " << newMaterial.m_iGLTextureIndex_Diffuse 
+			<< " Roughness Index " << newMaterial.m_iGLTextureIndex_Roughness 
+			<< " Normal Index " << newMaterial.m_iGLTextureIndex_Normal << endl;
 	}
 
 	std::cout << "Number of Materials Loaded " << (int)m_vMats.size() << std::endl;
@@ -403,7 +473,7 @@ bool COBJLoader::LoadOBJFile(const char* filename)
 			ReadTriangleFaceVertTexNorm(line, currentMat);
 			break;
 		}
-		case 'm': //It's the materail lib
+		case 'm': //It's the material lib
 		{
 			char buff[255];
 			char buff2[255];
