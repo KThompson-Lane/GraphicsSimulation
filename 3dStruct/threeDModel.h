@@ -35,7 +35,6 @@ private:
 	int							m_iNumberOfTriangles; 
 	int							m_iNumberOfTexCoords;
 	int							m_iNumberOfMaterials;
-
 	Vector3d*					m_pvVertices;
 	Vector3d*					m_pvFaceNormals;
 	Vector3d*					m_pvVertNormals;

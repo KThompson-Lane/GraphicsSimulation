@@ -24,6 +24,7 @@ using namespace std;
 
 const float G = 0.069420f;
 Player rocketShip = Player();
+
 vector<CelestialBody> Bodies;
 vector<PointLight> lights;
 ///END MODEL LOADING
@@ -110,6 +111,7 @@ void display()
 	//Player rendering
 	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders, lights);
 	//Render planets
+
 	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
 		it->render(viewingMatrix, ProjectionMatrix, showAllColliders, lights);
 	glFlush();
@@ -151,23 +153,20 @@ void init()
 	rocketShip.Move(glm::vec3(1.0, 0.0, 0.0), 45.0f);
 	rocketShip.Move(glm::vec3(0.0, 0.0, 1.0), 80.0f);
 	rocketShip.Rotate(0.0, -90.0f, 0.0);
-	//Create Star
+
+	//Create Delmar
 	Bodies.push_back(CelestialBody());
 	Bodies[0].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[0].init("Models/Bodies/Delmar/Delmar.obj", glm::vec3(0.0, 0.0f, 0.0), glm::vec3(0.0f, 0.0f, 0.0f), 1.8);
 	Bodies[0].Move(glm::vec3(1.0, 0.0, 0.0), 30.0f);
 	Bodies[0].Move(glm::vec3(0.0, 0.0, 1.0), 80.0f);
 
-	//Create mars
-	//Bodies.push_back(CelestialBody());
-	//Bodies[0].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
-	//Bodies[0].init("Models/Planets/Planet_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f), 1.8);
-
 	//Create moon
-	//Bodies.push_back(CelestialBody());
-	//Bodies[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
-	//Bodies[1].init("Models/Planets/Moon_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f), 2.5);
-	//Bodies[1].SetOrbit(&Bodies[0], 0.0005f, -35.0f);
+    Bodies.push_back(CelestialBody());
+	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
+	Bodies[1].init("Models/Bodies/Moon/Moon.obj", glm::vec3(30.0f, 0.0f, 80.0f), glm::vec3(0.0f, 0.0f, 0.0f), 2.5);
+	Bodies[1].SetOrbit(&Bodies[0], 0.0005f, -30.0f);
+
 }
 
 void ApplyGravity()
@@ -278,8 +277,8 @@ void PhysicsSimulation()
 	deltaTime = currentTime - lastFrameTime;
 	lastFrameTime = currentTime;
 	//ApplyGravity();
-	//ApplyOrbits();
-	//CheckCollisions();
+	ApplyOrbits();
+	CheckCollisions();
 	PlayerMovement();
 }
 

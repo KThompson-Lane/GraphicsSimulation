@@ -66,6 +66,7 @@ CThreeDModel::~CThreeDModel()
 	m_puiVBOs = nullptr;
 	
 	m_vuiFaceIndexRangeForTrisWithSameTexture.clear();
+	m_modelMaterials.clear();
 }
 
 /*
@@ -129,6 +130,12 @@ void CThreeDModel::operator=(const CThreeDModel & p)
 	for (unsigned int i = 0; i < p.m_vuiFaceIndexRangeForTrisWithSameTexture.size(); i++)
 	{
 		m_vuiFaceIndexRangeForTrisWithSameTexture.push_back(p.m_vuiFaceIndexRangeForTrisWithSameTexture[i]);
+	}
+
+	m_modelMaterials.clear();
+	for (unsigned int i = 0; i < p.m_modelMaterials.size(); i++)
+	{
+		m_modelMaterials.push_back(p.m_modelMaterials[i]);
 	}
 
 	if (p.m_puiVBOs != nullptr)
@@ -207,6 +214,7 @@ void CThreeDModel::ConstructModelFromOBJLoader(COBJLoader& refOBJLoader)
 		m_pvTexCoords[i] = refOBJLoader.m_vTexCoords[i];
 	}
 
+	m_modelMaterials.clear();
 	for (int i = 0; i < m_iNumberOfMaterials; i++)
 	{
 		m_modelMaterials.push_back(refOBJLoader.m_vMats[i]);
@@ -800,7 +808,7 @@ void CThreeDModel::DrawElementsUsingVBO(CShader * myShader)
 	for (auto i = m_vuiFaceIndexRangeForTrisWithSameTexture.begin(); i != m_vuiFaceIndexRangeForTrisWithSameTexture.end(); ++i)
 	{
 		int matId = std::get<2>(*i);
-		ObjMat& faceMat = this->m_modelMaterials[matId];
+		ObjMat& faceMat = m_modelMaterials[matId];
 		glActiveTexture(GL_TEXTURE0);
 		if (faceMat.m_iGLTextureIndex_Diffuse != -1)
 		{
