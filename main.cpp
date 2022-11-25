@@ -22,7 +22,7 @@ using namespace std;
 #include "Object/Player.h"
 #include "Object/CelestialBody.h"
 
-const float G = 0.069420f;
+static const float G = 0.069420f;
 Player rocketShip = Player();
 
 vector<CelestialBody> Bodies;
@@ -105,7 +105,7 @@ void display()
 			break;
 		default:
 			//Random arbitrary camera in space
-			viewingMatrix = glm::lookAt(glm::vec3(0, 0, 100), glm::vec3(0, 0, -50), glm::vec3(0, 1.0, 0));
+			viewingMatrix = glm::lookAt(glm::vec3(30.0f, 100.0f, 80.0f), glm::vec3(30.0f, -50.0f, 80.0f), glm::vec3(0, 0.0, 1.0));
 	}
 
 	//Player rendering
@@ -113,7 +113,9 @@ void display()
 	//Render planets
 
 	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
+	{
 		it->render(viewingMatrix, ProjectionMatrix, showAllColliders, lights);
+	}
 	glFlush();
 	glutSwapBuffers();
 }
@@ -155,17 +157,16 @@ void init()
 	rocketShip.Rotate(0.0, -90.0f, 0.0);
 
 	//Create Delmar
-	Bodies.push_back(CelestialBody());
+	Bodies.push_back(CelestialBody(0));
 	Bodies[0].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
-	Bodies[0].init("Models/Bodies/Delmar/Delmar.obj", glm::vec3(0.0, 0.0f, 0.0), glm::vec3(0.0f, 0.0f, 0.0f), 1.8);
-	Bodies[0].Move(glm::vec3(1.0, 0.0, 0.0), 30.0f);
-	Bodies[0].Move(glm::vec3(0.0, 0.0, 1.0), 80.0f);
+	Bodies[0].initialVelocity = glm::vec3(0.002f, 0.0f, 0.002f);
+	Bodies[0].init("Models/Bodies/Delmar/Delmar.obj", glm::vec3(30.0f, 0.0f, 80.0f), glm::vec3(0.0f, 0.0f, 0.0f), 3000.0f);
 
 	//Create moon
-    Bodies.push_back(CelestialBody());
+    Bodies.push_back(CelestialBody(1));
 	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
-	Bodies[1].init("Models/Bodies/Moon/Moon.obj", glm::vec3(30.0f, 0.0f, 80.0f), glm::vec3(0.0f, 0.0f, 0.0f), 2.5);
-	Bodies[1].SetOrbit(&Bodies[0], 0.0005f, -30.0f);
+	Bodies[1].initialVelocity = glm::vec3(0.0f, 0.0f, 0.25f);
+	Bodies[1].init("Models/Bodies/Moon/Moon.obj", glm::vec3(0.0f, 0.0f, 80.0f), glm::vec3(0.0f, 0.0f, 0.0f), 1.0f);
 
 }
 
@@ -188,49 +189,14 @@ void ApplyGravity()
 	}
 	glm::vec3 planetPosition = Bodies[closestPlanetIndex].GetObjectWorldPosition();
 
-	if (nearest <= Bodies[closestPlanetIndex].GetGravityDistance())
-	{
-		glm::vec3 attractDirection = normalize(planetPosition - playerPosition);
-		//calculate gravity strength
-		float m1 = rocketShip.GetColliderSphereRadius();
-		float m2 = Bodies[closestPlanetIndex].GetColliderSphereRadius();
+	glm::vec3 attractDirection = normalize(planetPosition - playerPosition);
+	//calculate gravity strength
+	float m1 = rocketShip.GetColliderSphereRadius();
+	float m2 = Bodies[closestPlanetIndex].GetColliderSphereRadius();
 
-		float strength = G * ((m1 * m2) / (nearest * nearest));
-		rocketShip.Move(attractDirection, strength);
-	}
-}
-void ApplyOrbits()
-{
-	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
-	{
-		if (it->orbitingBody != nullptr)
-		{
-			it->orbitAmount += (it->orbitalSpeed*deltaTime);
-			if (it->orbitAmount >= 360.0f)
-			{
-				it->orbitAmount -= 360.0f;
-			}
-			else if (it->orbitAmount < 0.0f)
-			{
-				it->orbitAmount += 360.0f;
-			}
-
-			//Try to do this without matrix operations if possible. Quaternions?
-
-			//Create new matrix for orbiting at the position of the body we are orbiting
-			glm::mat4 orbitMatrix = glm::translate(glm::mat4(1.0), it->orbitingBody->GetObjectWorldPosition());
-
-			orbitMatrix = glm::rotate(orbitMatrix, glm::radians(it->orbitAmount), glm::vec3(0.0, 1.0, 0.0));
-			orbitMatrix = glm::translate(orbitMatrix, glm::vec3(it->orbitDistance, 0.0, 0.0));
-
-			//Rotate by X then rotate by Y 
-			glm::vec3 objectPosition;
-			objectPosition.x = orbitMatrix[3][0];
-			objectPosition.y = orbitMatrix[3][1];
-			objectPosition.z = orbitMatrix[3][2];
-			it->SetPosition(objectPosition);
-		}
-	}
+	float strength = G * ((m1 * m2) / (nearest * nearest));
+	rocketShip.Move(attractDirection, strength);
+	
 }
 
 void CheckCollisions()
@@ -276,9 +242,16 @@ void PhysicsSimulation()
 	float currentTime = glutGet(GLUT_ELAPSED_TIME);
 	deltaTime = currentTime - lastFrameTime;
 	lastFrameTime = currentTime;
-	//ApplyGravity();
-	ApplyOrbits();
+	ApplyGravity();
 	CheckCollisions();
+	for (int i = 0; i < Bodies.size(); i++)
+	{
+		Bodies[i].UpdateVelocity(Bodies, deltaTime);
+	}
+	for (int i = 0; i < Bodies.size(); i++)
+	{
+		Bodies[i].UpdatePosition(deltaTime);
+	}
 	PlayerMovement();
 }
 

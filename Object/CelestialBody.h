@@ -5,22 +5,23 @@ class CelestialBody : public Object
 {
 	//private members
 private:
-	float gravitationalPull;
 	//public members
+	int index;
+	const float G = 0.000694f;
 public:
 	CelestialBody* orbitingBody = nullptr;
-	float orbitalSpeed;
-	float orbitDistance;
-	float orbitAmount = 0.0f;
-
+	float mass;
+	float radius;
+	glm::vec3 initialVelocity;
+	glm::vec3 currentVelocity;
 	//private functions
 private:
 
 	//public functions
 public:
-	void init(char* modelFile, glm::vec3 initialPosition, glm::vec3 initialRotation, float gravity);
-	void render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, std::vector<PointLight>& lights);
-	void SetOrbit(CelestialBody* orbitingBody, float speed, float distance);
-	float GetGravityDistance();
+	CelestialBody(int index);
+	void init(char* modelFile, glm::vec3 initialPosition, glm::vec3 initialRotation, float mass);
 	void SetPosition(glm::vec3 position);
+	void UpdateVelocity(std::vector<CelestialBody>& allBodies, float deltaTime);
+	void UpdatePosition(float deltaTime);
 };
