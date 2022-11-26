@@ -22,8 +22,9 @@ using namespace std;
 #include "Object/Player.h"
 #include "Object/CelestialBody.h"
 
-const float G = 0.069420f;
+static const float G = 0.069420f;
 Player rocketShip = Player();
+
 vector<CelestialBody> Bodies;
 vector<PointLight> lights;
 ///END MODEL LOADING
@@ -104,14 +105,17 @@ void display()
 			break;
 		default:
 			//Random arbitrary camera in space
-			viewingMatrix = glm::lookAt(glm::vec3(0, 0, 100), glm::vec3(0, 0, -50), glm::vec3(0, 1.0, 0));
+			viewingMatrix = glm::lookAt(glm::vec3(30.0f, 100.0f, 80.0f), glm::vec3(30.0f, -50.0f, 80.0f), glm::vec3(0, 0.0, 1.0));
 	}
 
 	//Player rendering
 	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders, lights);
 	//Render planets
+
 	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
+	{
 		it->render(viewingMatrix, ProjectionMatrix, showAllColliders, lights);
+	}
 	glFlush();
 	glutSwapBuffers();
 }
@@ -123,7 +127,7 @@ void reshape(int width, int height)		// Resize the OpenGL window
 	glViewport(0,0,width,height);						// Reset The Current Viewport
 
 	//Set the projection matrix
-	ProjectionMatrix = glm::perspective(glm::radians(25.0f), (GLfloat)screenWidth/(GLfloat)screenHeight, 0.001f, 200.0f);
+	ProjectionMatrix = glm::perspective(glm::radians(25.0f), (GLfloat)screenWidth/(GLfloat)screenHeight, 0.001f, 400.0f);
 }
 void init()
 {
@@ -139,7 +143,7 @@ void init()
 	lights[0].ambient = {0.8, 0.8, 0.8};
 	lights[0].diffuse = { 0.8, 0.8, 0.8 };
 	lights[0].specular = glm::vec3(1.0);
-	lights[0].position = glm::vec3(0, 0, 1.0f);
+	lights[0].position = glm::vec3(35.0f, 0, 80.0f);
 
 	lights[0].constant = 1.0f;
 	lights[0].linear = 0.007;
@@ -147,18 +151,23 @@ void init()
 
 	//Object setup
 	rocketShip.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
-	rocketShip.init("Models/FinalShip/FinalShip.obj");
+	rocketShip.init("Models/Ship/Ship.obj");
+	rocketShip.Move(glm::vec3(1.0, 0.0, 0.0), 45.0f);
+	rocketShip.Move(glm::vec3(0.0, 0.0, 1.0), 80.0f);
+	rocketShip.Rotate(0.0, -90.0f, 0.0);
 
-	//Create mars
-	Bodies.push_back(CelestialBody());
+	//Create Delmar
+	Bodies.push_back(CelestialBody(0));
 	Bodies[0].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
-	Bodies[0].init("Models/Planets/Planet_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f), 1.8);
+	Bodies[0].initialVelocity = glm::vec3(0.002f, 0.0f, 0.002f);
+	Bodies[0].init("Models/Bodies/Delmar/Delmar.obj", glm::vec3(30.0f, 0.0f, 80.0f), glm::vec3(0.0f, 0.0f, 0.0f), 3000.0f);
 
 	//Create moon
-	Bodies.push_back(CelestialBody());
+    Bodies.push_back(CelestialBody(1));
 	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
-	Bodies[1].init("Models/Planets/Moon_1.obj", glm::vec3(0.0f, -20.0f, -30.0f), glm::vec3(0.0f, 0.0f, 0.0f), 2.5);
-	Bodies[1].SetOrbit(&Bodies[0], 0.0005f, -35.0f);
+	Bodies[1].initialVelocity = glm::vec3(0.0f, 0.0f, 0.25f);
+	Bodies[1].init("Models/Bodies/Moon/Moon.obj", glm::vec3(0.0f, 0.0f, 80.0f), glm::vec3(0.0f, 0.0f, 0.0f), 1.0f);
+
 }
 
 void ApplyGravity()
@@ -180,49 +189,14 @@ void ApplyGravity()
 	}
 	glm::vec3 planetPosition = Bodies[closestPlanetIndex].GetObjectWorldPosition();
 
-	if (nearest <= Bodies[closestPlanetIndex].GetGravityDistance())
-	{
-		glm::vec3 attractDirection = normalize(planetPosition - playerPosition);
-		//calculate gravity strength
-		float m1 = rocketShip.GetColliderSphereRadius();
-		float m2 = Bodies[closestPlanetIndex].GetColliderSphereRadius();
+	glm::vec3 attractDirection = normalize(planetPosition - playerPosition);
+	//calculate gravity strength
+	float m1 = rocketShip.GetColliderSphereRadius();
+	float m2 = Bodies[closestPlanetIndex].GetColliderSphereRadius();
 
-		float strength = G * ((m1 * m2) / (nearest * nearest));
-		rocketShip.Move(attractDirection, strength);
-	}
-}
-void ApplyOrbits()
-{
-	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
-	{
-		if (it->orbitingBody != nullptr)
-		{
-			it->orbitAmount += (it->orbitalSpeed*deltaTime);
-			if (it->orbitAmount >= 360.0f)
-			{
-				it->orbitAmount -= 360.0f;
-			}
-			else if (it->orbitAmount < 0.0f)
-			{
-				it->orbitAmount += 360.0f;
-			}
-
-			//Try to do this without matrix operations if possible. Quaternions?
-
-			//Create new matrix for orbiting at the position of the body we are orbiting
-			glm::mat4 orbitMatrix = glm::translate(glm::mat4(1.0), it->orbitingBody->GetObjectWorldPosition());
-
-			orbitMatrix = glm::rotate(orbitMatrix, glm::radians(it->orbitAmount), glm::vec3(0.0, 1.0, 0.0));
-			orbitMatrix = glm::translate(orbitMatrix, glm::vec3(it->orbitDistance, 0.0, 0.0));
-
-			//Rotate by X then rotate by Y 
-			glm::vec3 objectPosition;
-			objectPosition.x = orbitMatrix[3][0];
-			objectPosition.y = orbitMatrix[3][1];
-			objectPosition.z = orbitMatrix[3][2];
-			it->SetPosition(objectPosition);
-		}
-	}
+	float strength = G * ((m1 * m2) / (nearest * nearest));
+	rocketShip.Move(attractDirection, strength);
+	
 }
 
 void CheckCollisions()
@@ -269,8 +243,15 @@ void PhysicsSimulation()
 	deltaTime = currentTime - lastFrameTime;
 	lastFrameTime = currentTime;
 	ApplyGravity();
-	ApplyOrbits();
 	CheckCollisions();
+	for (int i = 0; i < Bodies.size(); i++)
+	{
+		Bodies[i].UpdateVelocity(Bodies, deltaTime);
+	}
+	for (int i = 0; i < Bodies.size(); i++)
+	{
+		Bodies[i].UpdatePosition(deltaTime);
+	}
 	PlayerMovement();
 }
 

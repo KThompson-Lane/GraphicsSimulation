@@ -66,6 +66,7 @@ CThreeDModel::~CThreeDModel()
 	m_puiVBOs = nullptr;
 	
 	m_vuiFaceIndexRangeForTrisWithSameTexture.clear();
+	m_modelMaterials.clear();
 }
 
 /*
@@ -129,6 +130,12 @@ void CThreeDModel::operator=(const CThreeDModel & p)
 	for (unsigned int i = 0; i < p.m_vuiFaceIndexRangeForTrisWithSameTexture.size(); i++)
 	{
 		m_vuiFaceIndexRangeForTrisWithSameTexture.push_back(p.m_vuiFaceIndexRangeForTrisWithSameTexture[i]);
+	}
+
+	m_modelMaterials.clear();
+	for (unsigned int i = 0; i < p.m_modelMaterials.size(); i++)
+	{
+		m_modelMaterials.push_back(p.m_modelMaterials[i]);
 	}
 
 	if (p.m_puiVBOs != nullptr)
@@ -207,17 +214,23 @@ void CThreeDModel::ConstructModelFromOBJLoader(COBJLoader& refOBJLoader)
 		m_pvTexCoords[i] = refOBJLoader.m_vTexCoords[i];
 	}
 
+	m_modelMaterials.clear();
+	for (int i = 0; i < m_iNumberOfMaterials; i++)
+	{
+		m_modelMaterials.push_back(refOBJLoader.m_vMats[i]);
+	}
+
 	m_vuiFaceIndexRangeForTrisWithSameTexture.clear();
 	unsigned int polyCount = 0;
 	unsigned int polyCounter = 0;
-	int matID = refOBJLoader.m_vMats[refOBJLoader.m_vFaces[0].m_iMatId].m_iGLTextureIndex;
+	int matID = refOBJLoader.m_vFaces[0].m_iMatId;
 	for (int x = 0; x < m_iNumberOfTriangles; x++)
 	{
-		if (matID != refOBJLoader.m_vMats[refOBJLoader.m_vFaces[x].m_iMatId].m_iGLTextureIndex)
+		if (matID != refOBJLoader.m_vFaces[x].m_iMatId)
 		{
 			std::tuple<int, int, int> t = std::make_tuple(polyCount * 3, (polyCount + polyCounter - 1) * 3, matID);
 			m_vuiFaceIndexRangeForTrisWithSameTexture.push_back(t);
-			matID = refOBJLoader.m_vMats[refOBJLoader.m_vFaces[x].m_iMatId].m_iGLTextureIndex;
+			matID = refOBJLoader.m_vFaces[x].m_iMatId;
 			polyCount = polyCount + polyCounter;
 			polyCounter = 1;
 		}
@@ -788,15 +801,37 @@ void CThreeDModel::DrawElementsUsingVBO(CShader * myShader)
 	glBindVertexArray(m_uiVaoID);
 
 	glUniform1i(glGetUniformLocation(myShader->GetProgramObjID(), "DiffuseMap"), 0);
+	glUniform1i(glGetUniformLocation(myShader->GetProgramObjID(), "RoughnessMap"), 1);
+	glUniform1i(glGetUniformLocation(myShader->GetProgramObjID(), "NormalMap"), 2);
 
 	int triIDVBOCounter = 0;
 	for (auto i = m_vuiFaceIndexRangeForTrisWithSameTexture.begin(); i != m_vuiFaceIndexRangeForTrisWithSameTexture.end(); ++i)
 	{
+		int matId = std::get<2>(*i);
+		ObjMat& faceMat = m_modelMaterials[matId];
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, std::get<2>(*i));
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+		if (faceMat.m_iGLTextureIndex_Diffuse != -1)
+		{
+			glBindTexture(GL_TEXTURE_2D, faceMat.m_iGLTextureIndex_Diffuse);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		}
 
+		glActiveTexture(GL_TEXTURE1);
+		if (faceMat.m_iGLTextureIndex_Roughness != -1)
+		{
+			glBindTexture(GL_TEXTURE_2D, faceMat.m_iGLTextureIndex_Roughness);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		}
+
+		glActiveTexture(GL_TEXTURE2);
+		if (faceMat.m_iGLTextureIndex_Normal != -1)
+		{
+			glBindTexture(GL_TEXTURE_2D, faceMat.m_iGLTextureIndex_Normal);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		}
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_puiVBOs[NUM_OF_VBOS_WITHOUT_TRI_IDS + (triIDVBOCounter++)]);
 
 		glDrawElements(GL_TRIANGLES, (std::get<1>(*i) - std::get<0>(*i) + DIMENSION_IN_3D), GL_UNSIGNED_INT, 0);

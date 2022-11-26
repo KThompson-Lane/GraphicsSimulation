@@ -1,5 +1,6 @@
 #version 400
 #define LIGHTS_NR 1
+
 in  vec2 ex_TexCoord; //texture coord arriving from the vertex
 in  vec3 ex_Normal;  //normal arriving from the vertex
 
@@ -21,15 +22,13 @@ struct PointLight {
 uniform PointLight pointLights[LIGHTS_NR];
 
 struct Material {
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+    sampler2D diffuse;
+    sampler2D roughness;
     float shininess;
 }; 
 uniform Material material;
 
-uniform sampler2D DiffuseMap;
-
+uniform sampler2D normalMap;  
 
 vec3 PhongPointLightCalc(PointLight light, vec3 normal, vec3 ex_PositionEye, vec3 viewDirection)
 {
@@ -51,13 +50,13 @@ vec3 PhongPointLightCalc(PointLight light, vec3 normal, vec3 ex_PositionEye, vec
                                     ,1);
 
         // combine results
-        vec3 ambient  = light.ambient * material.ambient  * vec3(texture(DiffuseMap, ex_TexCoord));
-        vec3 diffuse  = light.diffuse * material.diffuse * diff * vec3(texture(DiffuseMap, ex_TexCoord));
-        vec3 specular = light.specular * material.specular * spec * vec3(texture(DiffuseMap, ex_TexCoord));
+        vec3 ambient  = light.ambient * vec3(texture(material.diffuse, ex_TexCoord));
+        vec3 diffuse  = light.diffuse * diff * vec3(texture(material.diffuse, ex_TexCoord));
+        vec3 specular = light.specular * spec * vec3(texture(material.roughness, ex_TexCoord));
         ambient  *= attenuation;
         diffuse  *= attenuation;
         specular *= attenuation;
-        return (ambient + diffuse + specular);
+        return (ambient + diffuse);
 }
 
 void main(void)
@@ -66,12 +65,14 @@ void main(void)
 	//Calculate lighting
 	vec3 color;
 
+    vec3 normal = texture(normalMap, ex_TexCoord).rgb;
+    normal = normalize(normal * 2.0 - 1.0);
     //fragment position is in eyespace
     for(int i = 0; i < LIGHTS_NR; i++)
     {
-        color += PhongPointLightCalc(pointLights[i], normalize(ex_Normal), ex_PositionEye, normalize(ex_PositionEye));
+        color += PhongPointLightCalc(pointLights[i], normal, ex_PositionEye, normalize(ex_PositionEye));
     }
 
-   out_Color = vec4(color, 1.0) * texture(DiffuseMap, ex_TexCoord); //show texture and lighting
+    out_Color = vec4(color, 1.0);
 }
 
