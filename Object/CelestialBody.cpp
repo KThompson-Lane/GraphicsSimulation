@@ -29,7 +29,7 @@ void CelestialBody::UpdateVelocity(std::vector<CelestialBody>& allBodies, float 
 		if (allBodies[i].index != this->index)
 		{
 			CelestialBody* otherBody = &allBodies[i];
-			float sqrDistance = glm::distance2(this->objectPosition, otherBody->GetObjectWorldPosition());
+			float sqrDistance = glm::distance2(otherBody->GetObjectWorldPosition(), this->objectPosition);
 
 			glm::vec3 forceDirection = glm::normalize(otherBody->GetObjectWorldPosition() - this->objectPosition);
 			glm::vec3 force = forceDirection * (G * (mass * otherBody->mass / sqrDistance));
@@ -41,5 +41,5 @@ void CelestialBody::UpdateVelocity(std::vector<CelestialBody>& allBodies, float 
 }
 void CelestialBody::UpdatePosition(float deltaTime)
 {
-	objectPosition += currentVelocity;
+	objectPosition += currentVelocity ;
 }

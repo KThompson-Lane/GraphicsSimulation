@@ -22,7 +22,7 @@ using namespace std;
 #include "Object/Player.h"
 #include "Object/CelestialBody.h"
 
-static const float G = 0.000000694f;
+static const float G = 0.069420f;
 Player rocketShip = Player();
 
 vector<CelestialBody> Bodies;
@@ -173,14 +173,30 @@ void init()
 void ApplyGravity()
 {
 	glm::vec3 playerPosition = rocketShip.GetObjectWorldPosition();
-	//Apply gravity to each celestial body
+	//Apply gravity to nearest celestial body
+	float nearest = 1000.0f;
+	int closestPlanetIndex = 0;
+	int currentPlanet = 0;
 	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
 	{
-		float squaredDistance = glm::distance2(it->GetObjectWorldPosition(), playerPosition);
-		glm::vec3 forceDirection = glm::normalize(it->GetObjectWorldPosition() - playerPosition);
-		glm::vec3 acceleration = forceDirection * G * it->mass / (squaredDistance);
-		rocketShip.AddForce(acceleration);
+		float dist = distance(it->GetObjectWorldPosition(), playerPosition);
+		if (dist < nearest)
+		{
+			nearest = dist;
+			closestPlanetIndex = currentPlanet;
+		}
+		++currentPlanet;
 	}
+	glm::vec3 planetPosition = Bodies[closestPlanetIndex].GetObjectWorldPosition();
+
+	glm::vec3 attractDirection = normalize(planetPosition - playerPosition);
+	//calculate gravity strength
+	float m1 = rocketShip.GetColliderSphereRadius();
+	float m2 = Bodies[closestPlanetIndex].GetColliderSphereRadius();
+
+	float strength = G * ((m1 * m2) / (nearest * nearest));
+	rocketShip.Move(attractDirection, strength);
+	
 }
 
 void CheckCollisions()
@@ -195,21 +211,14 @@ void CheckCollisions()
 		float colliderRadi = it->GetColliderSphereRadius() + rocketShip.GetColliderSphereRadius();
 		if (playerDistance <= colliderRadi)
 		{
-			//First move out of collision
-			glm::vec3 repulseDirection = normalize(rocketShip.GetObjectWorldPosition() - planetPosition);
-			playerDistance = distance(planetPosition, rocketShip.GetObjectWorldPosition());
+			glm::vec3 repulseDirection = normalize(playerPosition - planetPosition);
+
 			float Rp = playerDistance - rocketShip.GetColliderSphereRadius();
 			float Rc = playerDistance - it->GetColliderSphereRadius();
 			float P = playerDistance - (Rp + Rc);
+
+			//TODO: If implementing newtonian physics replace this with a real equation based on velocity.
 			rocketShip.Move(repulseDirection, P);
-
-			//Then apply force
-			
-			glm::vec3 acceleration = (repulseDirection * glm::length(rocketShip.GetVelocity()));
-			//TODO: If implementing newtonian physics replace this with a real equation based on velocity.
-			rocketShip.AddForce(acceleration);
-
-			//TODO: If implementing newtonian physics replace this with a real equation based on velocity.
 		}
 	}
 }
@@ -223,7 +232,7 @@ void PlayerMovement()
 	rocketShip.Rotate(pitchInput, yawInput, rollInput);
 
 	//Calculate player forward thrust
-	rocketShip.AddForce(rocketShip.Forward() * ((Throttle * rocketShip.GetSpeed()) * 0.01f));
+	rocketShip.Move(rocketShip.Forward(), (Throttle * rocketShip.GetSpeed()) * deltaTime);
 	//Calculate player vertical thrust
 	rocketShip.Move(rocketShip.Up(), (VerticleThrottle * 0.003) * deltaTime);
 }
@@ -243,7 +252,6 @@ void PhysicsSimulation()
 	{
 		Bodies[i].UpdatePosition(deltaTime);
 	}
-	rocketShip.UpdatePosition(deltaTime);
 	PlayerMovement();
 }
 
