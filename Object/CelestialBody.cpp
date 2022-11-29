@@ -41,5 +41,5 @@ void CelestialBody::UpdateVelocity(std::vector<CelestialBody>& allBodies, float 
 }
 void CelestialBody::UpdatePosition(float deltaTime)
 {
-	objectPosition += currentVelocity ;
+	objectPosition += currentVelocity;
 }

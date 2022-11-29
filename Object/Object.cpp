@@ -106,12 +106,6 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool 
 	glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), "pointLights[0].linear"), lights[0].linear);
 	glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), "pointLights[0].quadratic"), lights[0].quadratic);
 
-
-	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "material.ambient"), material.ambient.x, material.ambient.y, material.ambient.z);
-	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "material.diffuse"), material.diffuse.x, material.diffuse.y, material.diffuse.z);
-	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "material.specular"), material.specular.x, material.specular.y, material.specular.z);
-	glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), "material.shininess"), material.shininess);
-
 	//Set the modelview matrix in the shader
 	objectModelMatrix = glm::translate(glm::mat4(1.0), objectPosition);
 	objectModelMatrix *= glm::toMat4(objectRotation);

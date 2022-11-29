@@ -31,11 +31,13 @@ public:
 	char			m_carrTextureName_Diffuse[255];
 	char			m_carrTextureName_Roughness[255];
 	char			m_carrTextureName_Normal[255];
+	char			m_carrTextureName_Emission[255];
 
 	//Created
 	GLuint			m_iGLTextureIndex_Diffuse;
 	GLuint			m_iGLTextureIndex_Roughness;
 	GLuint			m_iGLTextureIndex_Normal;
+	GLuint			m_iGLTextureIndex_Emission;
 
 	ObjMat()
 	{
@@ -43,6 +45,7 @@ public:
 		m_carrTextureName_Diffuse[0] = ' ';
 		m_carrTextureName_Roughness[0] = ' ';
 		m_carrTextureName_Normal[0] = ' ';
+		m_carrTextureName_Emission[0] = ' ';
 
 		m_farrAmbientCol[0] = m_farrAmbientCol[1] = m_farrAmbientCol[2] = 0.0f;
 		m_farrDiffuseCol[0] = m_farrDiffuseCol[1] = m_farrDiffuseCol[2] = 0.0f;
@@ -54,7 +57,7 @@ public:
 		m_iGLTextureIndex_Diffuse	= -1;
 		m_iGLTextureIndex_Roughness = -1;
 		m_iGLTextureIndex_Normal	= -1;
-
+		m_iGLTextureIndex_Emission  = -1;
 	}
 };
 

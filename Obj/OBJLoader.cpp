@@ -177,7 +177,11 @@ bool COBJLoader::LoadMTLFile(const char* mainName, const char* filename)
 					s = actualPath + "\\" + newMaterial.m_carrTextureName_Normal;
 					newMaterial.m_iGLTextureIndex_Normal = CTextureHandler::LookUpTexture(s);
 				}
-
+				if (newMaterial.m_carrTextureName_Emission[0] != ' ')
+				{
+					s = actualPath + "\\" + newMaterial.m_carrTextureName_Emission;
+					newMaterial.m_iGLTextureIndex_Emission = CTextureHandler::LookUpTexture(s);
+				}
 				m_vMats.push_back(newMaterial);
 
 			}
@@ -284,13 +288,12 @@ bool COBJLoader::LoadMTLFile(const char* mainName, const char* filename)
 		}
 
 		else if (identifierStr == "map_Ke")
-		//EMISSION NOT YET IMPLEMENTED
 		{
 
 		fin.getline(line, 255); //textureName
 
 		fin >> ws;
-		//sscanf_s(line, "%s", &newMaterial.m_carrTextureName_Diffuse, _countof(line));
+		sscanf_s(line, "%s", &newMaterial.m_carrTextureName_Emission, _countof(line));
 
 		}
 
@@ -301,8 +304,8 @@ bool COBJLoader::LoadMTLFile(const char* mainName, const char* filename)
 		fin.getline(line, 255); //textureName
 
 		fin >> ws;
-		//Not yet implemented
-		//sscanf_s(line, "%s", &newMaterial.m_carrTextureName_Diffuse, _countof(line));
+		//currently set to roughness
+		sscanf_s(line, "%s", &newMaterial.m_carrTextureName_Roughness, _countof(line));
 
 		}
 
@@ -365,13 +368,19 @@ bool COBJLoader::LoadMTLFile(const char* mainName, const char* filename)
 			newMaterial.m_iGLTextureIndex_Normal = CTextureHandler::LookUpTexture(s);
 		}
 
+		if (newMaterial.m_carrTextureName_Emission[0] != ' ')
+		{
+			s = actualPath + "\\" + newMaterial.m_carrTextureName_Emission;
+			newMaterial.m_iGLTextureIndex_Emission = CTextureHandler::LookUpTexture(s);
+		}
 
 		m_vMats.push_back(newMaterial);
 
 		cout << "MATERIAL " << newMaterial.m_carrMatName 
 			<< " Diffuse Index " << newMaterial.m_iGLTextureIndex_Diffuse 
 			<< " Roughness Index " << newMaterial.m_iGLTextureIndex_Roughness 
-			<< " Normal Index " << newMaterial.m_iGLTextureIndex_Normal << endl;
+			<< " Normal Index " << newMaterial.m_iGLTextureIndex_Normal 
+			<< " Emission Index " << newMaterial.m_iGLTextureIndex_Emission << endl;
 	}
 
 	std::cout << "Number of Materials Loaded " << (int)m_vMats.size() << std::endl;

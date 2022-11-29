@@ -799,10 +799,10 @@ void CThreeDModel::InitVBO(CShader* myShader)
 void CThreeDModel::DrawElementsUsingVBO(CShader * myShader)
 {
 	glBindVertexArray(m_uiVaoID);
-
-	glUniform1i(glGetUniformLocation(myShader->GetProgramObjID(), "DiffuseMap"), 0);
-	glUniform1i(glGetUniformLocation(myShader->GetProgramObjID(), "RoughnessMap"), 1);
-	glUniform1i(glGetUniformLocation(myShader->GetProgramObjID(), "NormalMap"), 2);
+	glUniform1i(glGetUniformLocation(myShader->GetProgramObjID(), "material.diffuse"), 9);
+	glUniform1i(glGetUniformLocation(myShader->GetProgramObjID(), "material.roughness"), 9);
+	glUniform1i(glGetUniformLocation(myShader->GetProgramObjID(), "material.normalMap"), 9);
+	glUniform1i(glGetUniformLocation(myShader->GetProgramObjID(), "material.emissionMap"), 9);
 
 	int triIDVBOCounter = 0;
 	for (auto i = m_vuiFaceIndexRangeForTrisWithSameTexture.begin(); i != m_vuiFaceIndexRangeForTrisWithSameTexture.end(); ++i)
@@ -815,6 +815,7 @@ void CThreeDModel::DrawElementsUsingVBO(CShader * myShader)
 			glBindTexture(GL_TEXTURE_2D, faceMat.m_iGLTextureIndex_Diffuse);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glUniform1i(glGetUniformLocation(myShader->GetProgramObjID(), "material.diffuse"), 0);
 		}
 
 		glActiveTexture(GL_TEXTURE1);
@@ -823,6 +824,7 @@ void CThreeDModel::DrawElementsUsingVBO(CShader * myShader)
 			glBindTexture(GL_TEXTURE_2D, faceMat.m_iGLTextureIndex_Roughness);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glUniform1i(glGetUniformLocation(myShader->GetProgramObjID(), "material.roughness"), 1);
 		}
 
 		glActiveTexture(GL_TEXTURE2);
@@ -831,6 +833,15 @@ void CThreeDModel::DrawElementsUsingVBO(CShader * myShader)
 			glBindTexture(GL_TEXTURE_2D, faceMat.m_iGLTextureIndex_Normal);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glUniform1i(glGetUniformLocation(myShader->GetProgramObjID(), "material.normalMap"), 2);
+		}
+		glActiveTexture(GL_TEXTURE3);
+		if (faceMat.m_iGLTextureIndex_Emission != -1)
+		{
+			glBindTexture(GL_TEXTURE_2D, faceMat.m_iGLTextureIndex_Emission);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glUniform1i(glGetUniformLocation(myShader->GetProgramObjID(), "material.emissionMap"), 3);
 		}
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_puiVBOs[NUM_OF_VBOS_WITHOUT_TRI_IDS + (triIDVBOCounter++)]);
 
