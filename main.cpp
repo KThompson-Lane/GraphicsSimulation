@@ -143,11 +143,11 @@ void init()
 	lights[0].ambient = {0.8, 0.8, 0.8};
 	lights[0].diffuse = { 0.8, 0.8, 0.8 };
 	lights[0].specular = glm::vec3(1.0);
-	lights[0].position = glm::vec3(35.0f, 0, 80.0f);
+	lights[0].position = glm::vec3(35.0f, 0.0f, 80.0f);
 
 	lights[0].constant = 1.0f;
-	lights[0].linear = 0.007;
-	lights[0].quadratic = 0.0002;
+	lights[0].linear = 0.045;
+	lights[0].quadratic = 0.0075;
 
 	//Object setup
 	rocketShip.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
