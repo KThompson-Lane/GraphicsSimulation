@@ -27,11 +27,11 @@ Player rocketShip = Player();
 
 vector<CelestialBody> Bodies;
 vector<PointLight> lights;
+SpotLight playerSpot;
 ///END MODEL LOADING
 
 //Lighting
 #include "Light/Light.h"
-PointLight light;
 
 CShader boundShader;
 
@@ -61,7 +61,6 @@ void reshape(int width, int height);				//called when the window is resized
 void init();				//called in winmain when the program starts.
 void processKeys();         //called in winmain to process keyboard input
 void idle();		//idle function
-void PrintPositions(Object* obj);
 /*************    START OF OPENGL FUNCTIONS   ****************/
 void display()									
 {
@@ -108,12 +107,12 @@ void display()
 	}
 
 	//Player rendering
-	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders, lights);
+	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders, lights, playerSpot);
 
 	//Render planets
 	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
 	{
-		it->render(viewingMatrix, ProjectionMatrix, showAllColliders, lights);
+		it->render(viewingMatrix, ProjectionMatrix, showAllColliders, lights, playerSpot);
 	}
 	glFlush();
 	glutSwapBuffers();
@@ -138,7 +137,7 @@ void init()
 	glEnable(GL_CULL_FACE);
 
 	lights.push_back(PointLight());
-	//Create simple light
+	//Create light for the Star
 	lights[0].ambient = {0.8, 0.8, 0.8};
 	lights[0].diffuse = { 0.8, 0.8, 0.8 };
 	lights[0].specular = glm::vec3(1.0);
@@ -148,12 +147,26 @@ void init()
 	lights[0].linear = 0.007;
 	lights[0].quadratic = 0.0002;
 
-	//Object setup
+	//Player setup
 	rocketShip.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	rocketShip.init("Models/Ship/Ship.obj");
 	rocketShip.Move(glm::vec3(1.0, 0.0, 0.0), 120);
 	rocketShip.Move(glm::vec3(0.0, 0.0, 1.0), 20);
 	rocketShip.Rotate(0.0, 225.0f ,0.0);
+
+	//Create ship spotlight
+	playerSpot.ambient = { 0.8, 0.8, 0.8 };
+	playerSpot.diffuse = { 0.8, 0.8, 0.8 };
+	playerSpot.specular = glm::vec3(1.0);
+	playerSpot.position = glm::vec3(0.0f, 0.0f, 0.0f);
+
+	playerSpot.constant = 1.0f;
+	playerSpot.linear = 0.35;
+	playerSpot.quadratic = 0.44;
+
+	playerSpot.position = rocketShip.GetObjectWorldPosition() + (rocketShip.Up() * 0.15f);
+	playerSpot.direction = rocketShip.Forward();
+	playerSpot.cutOff = 12.5f;
 
 	//Create star
 	Bodies.push_back(CelestialBody(0));
@@ -238,7 +251,7 @@ void CheckCollisions()
 }
 
 void PlayerMovement()
-{
+{	
 	//Calculate rotation increments based on player input
 	float yawInput = (Yaw * rocketShip.GetRotationSpeed()) * deltaTime;
 	float pitchInput = (Pitch * rocketShip.GetRotationSpeed()) * deltaTime;
@@ -249,6 +262,9 @@ void PlayerMovement()
 	rocketShip.Move(rocketShip.Forward(), (Throttle * rocketShip.GetSpeed()) * deltaTime);
 	//Calculate player vertical thrust
 	rocketShip.Move(rocketShip.Up(), (VerticleThrottle * 0.003) * deltaTime);
+
+	//Finally update ship light to match new position
+	playerSpot.position = rocketShip.GetObjectWorldPosition() + (rocketShip.Up() * -0.15f);
 }
 
 void PhysicsSimulation() 
@@ -329,7 +345,7 @@ void KeyDown(unsigned char key, int x, int y)
 }
 void KeyUp(unsigned char key, int x, int y)
 {
-	switch (key)
+	switch (std::tolower(key))
 	{
 	case 'w':
 	case 's':
@@ -345,6 +361,9 @@ void KeyUp(unsigned char key, int x, int y)
 		break;
 	case ' ':
 		VerticleThrottle = 0.0f;
+		break;
+	case 'f':
+		playerSpot.active = !playerSpot.active;
 		break;
 	}
 }

@@ -9,9 +9,9 @@ float Player::GetRotationSpeed()
 {
 	return rotationSpeed;
 }
-void Player::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, std::vector<PointLight>& lights)
+void Player::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, std::vector<PointLight>& lights, SpotLight& playerSpotLight)
 {
 	glDisable(GL_CULL_FACE);
-	Object::render(viewingMatrix, ProjectionMatrix, showCollider, lights);
+	Object::render(viewingMatrix, ProjectionMatrix, showCollider, lights, playerSpotLight);
 	glEnable(GL_CULL_FACE);
 }

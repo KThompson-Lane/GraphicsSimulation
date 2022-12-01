@@ -71,7 +71,7 @@ void Object::setupShader(char* shaderName, char* vertPath, char* fragPath)
 	glEnable(GL_TEXTURE_2D);
 }
 
-void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, std::vector<PointLight>& lights)
+void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, std::vector<PointLight>& lights, SpotLight& playerSpotLight)
 {
 	glUseProgram(objectShader.GetProgramObjID());  // use the shader
 	//Displacement stuffs
@@ -91,19 +91,43 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool 
 	//Set the view matrix in the shader
 	glUniformMatrix4fv(glGetUniformLocation(objectShader.GetProgramObjID(), "ViewMatrix"), 1, GL_FALSE, &viewingMatrix[0][0]);
 
-	//TEST CODE ONLY USE ONE LIGHT FOR NOW
-	//TRANSFORM POSITION INTO EYESPACE
-	glm::vec3 lightEyePos = glm::vec3(viewingMatrix * glm::vec4(lights[0].position, 1));
-	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "pointLights[0].position"), lightEyePos.x, lightEyePos.y, lightEyePos.z);
+	glm::vec3 lightEyePos;
+	for (int i = 0; i < lights.size(); i++)
+	{
+		//TRANSFORM POSITION INTO EYESPACE
+		lightEyePos = viewingMatrix * glm::vec4(lights[i].position, 1);
 
-	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "pointLights[0].ambient"), lights[0].ambient.x, lights[0].ambient.y, lights[0].ambient.z);
-	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "pointLights[0].diffuse"), lights[0].diffuse.x, lights[0].diffuse.y, lights[0].diffuse.z);
-	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "pointLights[0].specular"), lights[0].specular.x, lights[0].specular.y, lights[0].specular.z);
+		//Construct light string and set values in shader
+		std::string lightArrayString = "pointLights[";
+		lightArrayString += std::to_string(i);
+		lightArrayString += "]";
+		glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), (lightArrayString+".position").c_str()), lightEyePos.x, lightEyePos.y, lightEyePos.z);
 
-	glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), "pointLights[0].constant"), lights[0].constant);
-	glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), "pointLights[0].linear"), lights[0].linear);
-	glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), "pointLights[0].quadratic"), lights[0].quadratic);
+		glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), (lightArrayString + ".ambient").c_str()), lights[i].ambient.x, lights[i].ambient.y, lights[i].ambient.z);
+		glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), (lightArrayString + ".diffuse").c_str()), lights[i].diffuse.x, lights[i].diffuse.y, lights[i].diffuse.z);
+		glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), (lightArrayString + ".specular").c_str()), lights[i].specular.x, lights[i].specular.y, lights[i].specular.z);
 
+		glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), (lightArrayString + ".constant").c_str()), lights[i].constant);
+		glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), (lightArrayString + ".linear").c_str()), lights[i].linear);
+		glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), (lightArrayString + ".quadratic").c_str()), lights[i].quadratic);
+	}
+
+	lightEyePos = viewingMatrix * glm::vec4(playerSpotLight.position, 1);
+	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.position"), lightEyePos.x, lightEyePos.y, lightEyePos.z);
+
+	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.ambient"), playerSpotLight.ambient.x, playerSpotLight.ambient.y, playerSpotLight.ambient.z);
+	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.diffuse"), playerSpotLight.diffuse.x, playerSpotLight.diffuse.y, playerSpotLight.diffuse.z);
+	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.specular"), playerSpotLight.specular.x, playerSpotLight.specular.y, playerSpotLight.specular.z);
+
+	glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.constant"), playerSpotLight.constant);
+	glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.linear"), playerSpotLight.linear);
+	glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.quadratic"), playerSpotLight.quadratic);
+
+	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.direction"), playerSpotLight.direction.x, playerSpotLight.direction.y, playerSpotLight.direction.z);
+	glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.cutOff"), glm::cos(glm::radians(playerSpotLight.cutOff)));
+
+	glUniform1i(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.enabled"), playerSpotLight.active);
+	
 	//Set the modelview matrix in the shader
 	objectModelMatrix = glm::translate(glm::mat4(1.0), objectPosition);
 	objectModelMatrix *= glm::toMat4(objectRotation);

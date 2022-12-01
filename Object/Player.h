@@ -14,7 +14,7 @@ private:
 
 	//public functions
 public:
-	void render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, std::vector<PointLight>& lights);
+	void render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, std::vector<PointLight>& lights, SpotLight& playerSpotLight);
 	float GetSpeed();
 	float GetRotationSpeed();
 };

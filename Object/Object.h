@@ -41,7 +41,7 @@ public:
 	void init(char* modelFile);
 	void setupShader(char*, char*, char*);
 	//TODO: Change this to take in a collection of Light objects and iterate over them when rendering.
-	void render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, std::vector<PointLight>& lights);
+	void render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, std::vector<PointLight>& lights, SpotLight& playerSpotLight);
 	void Move(glm::vec3 direction, float amount);
 	void Rotate(float pitchIn, float yawIn, float rollIn);
 	glm::vec3 GetObjectWorldPosition();
