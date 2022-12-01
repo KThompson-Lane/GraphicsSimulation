@@ -4,7 +4,7 @@ class Player : public Object
 {
 	//private members
 private:
-	const float rotationSpeed = 0.002f;
+	const float rotationSpeed = 0.2f;
 	const float speed = 0.005;
 	//public members
 public:

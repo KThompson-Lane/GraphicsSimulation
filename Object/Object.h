@@ -26,7 +26,6 @@ private:
 	COBJLoader objectLoader;
 	glm::mat4 ModelViewMatrix;  // matrix for the modelling and viewing
 	Sphere boundingSphere;
-
 protected:
 	glm::mat4 objectModelMatrix;
 	glm::vec3 objectPosition;
@@ -39,7 +38,6 @@ private:
 
 //public functions
 public:
-	//Object(char*);
 	void init(char* modelFile);
 	void setupShader(char*, char*, char*);
 	//TODO: Change this to take in a collection of Light objects and iterate over them when rendering.

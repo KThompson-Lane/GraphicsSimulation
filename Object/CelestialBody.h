@@ -6,22 +6,22 @@ class CelestialBody : public Object
 	//private members
 private:
 	//public members
-	int index;
-	const float G = 0.000694f;
+	const float G = 0.0000694f;
 public:
-	CelestialBody* orbitingBody = nullptr;
-	float mass;
+	int orbitingBodyIndex = -1;
+	int index;
 	float radius;
-	glm::vec3 initialVelocity;
-	glm::vec3 currentVelocity;
+	float orbitalSpeed;
+	float orbitDistance;
+	float orbitAmount = 0.0f;
 	//private functions
 private:
 
 	//public functions
 public:
 	CelestialBody(int index);
-	void init(char* modelFile, glm::vec3 initialPosition, glm::vec3 initialRotation, float mass);
+	void init(char* modelFile, glm::vec3 initialPosition, glm::vec3 initialRotation);
 	void SetPosition(glm::vec3 position);
-	void UpdateVelocity(std::vector<CelestialBody>& allBodies, float deltaTime);
-	void UpdatePosition(float deltaTime);
+	void SetOrbit(int orbitingBodyIndex, float speed, float distance);
+	void UpdateOrbit(glm::vec3 orbitBodyPosition, float deltaTime);
 };

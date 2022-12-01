@@ -159,9 +159,9 @@ void Object::Move(glm::vec3 direction, float amount)
 
 void Object::Rotate(float pitchIn, float yawIn, float rollIn)
 {
-	glm::quat pitch = glm::angleAxis(pitchIn, Side());
-	glm::quat yaw = glm::angleAxis(yawIn, Up());
-	glm::quat roll = glm::angleAxis(rollIn, Forward());
+	glm::quat pitch = glm::angleAxis(glm::radians(pitchIn), Side());
+	glm::quat yaw = glm::angleAxis(glm::radians(yawIn), Up());
+	glm::quat roll = glm::angleAxis(glm::radians(rollIn), Forward());
 	objectRotation = (pitch * yaw * roll * objectRotation);
 }
 
@@ -191,5 +191,3 @@ float Object::GetColliderSphereRadius()
 {
 	return boundingSphere.GetRadius();
 }
-
-
