@@ -56,9 +56,9 @@ vec3 PhongPointLightCalc(PointLight light, vec3 normal, vec3 ex_PositionEye, vec
         vec3 emission = vec3(texture(material.emissionMap, ex_TexCoord));
 
 
-        //ambient  *= attenuation;
-        //diffuse  *= attenuation;
-        //specular *= attenuation;
+        ambient  *= attenuation;
+        diffuse  *= attenuation;
+        specular *= attenuation;
         return (ambient + diffuse + specular + emission);
 }
 

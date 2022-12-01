@@ -73,8 +73,6 @@ void Object::setupShader(char* shaderName, char* vertPath, char* fragPath)
 
 void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, std::vector<PointLight>& lights)
 {
-	glDisable(GL_CULL_FACE);
-
 	glUseProgram(objectShader.GetProgramObjID());  // use the shader
 	//Displacement stuffs
 	
@@ -116,7 +114,6 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool 
 	//Set the normal matrix in the shader
 	glm::mat3 normalMatrix = glm::inverseTranspose(glm::mat3(ModelViewMatrix));
 	glUniformMatrix3fv(glGetUniformLocation(objectShader.GetProgramObjID(), "NormalMatrix"), 1, GL_FALSE, &normalMatrix[0][0]);
-
 
 	//Do a render
 	model.DrawElementsUsingVBO(&objectShader);
