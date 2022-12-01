@@ -17,5 +17,6 @@ struct PointLight
 struct SpotLight : PointLight
 {
 	glm::vec3 direction;
-	glm::vec3 cutOff;
+	float cutOff;
+	bool active;
 };

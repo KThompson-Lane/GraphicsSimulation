@@ -22,16 +22,16 @@ using namespace std;
 #include "Object/Player.h"
 #include "Object/CelestialBody.h"
 
-static const float G = 0.069420f;
+static const float G = 0.69420f;
 Player rocketShip = Player();
 
 vector<CelestialBody> Bodies;
 vector<PointLight> lights;
+SpotLight playerSpot;
 ///END MODEL LOADING
 
 //Lighting
 #include "Light/Light.h"
-PointLight light;
 
 CShader boundShader;
 
@@ -47,7 +47,7 @@ float Pitch, Yaw, Roll;
 float VerticleThrottle;
 
 bool accelerate, deccelerate;
-int CameraIndex;
+int CameraIndex = 0;
 //Collider drawing
 bool showPlayerCollider, showAllColliders;
 
@@ -61,7 +61,6 @@ void reshape(int width, int height);				//called when the window is resized
 void init();				//called in winmain when the program starts.
 void processKeys();         //called in winmain to process keyboard input
 void idle();		//idle function
-void PrintPositions(Object* obj);
 /*************    START OF OPENGL FUNCTIONS   ****************/
 void display()									
 {
@@ -88,10 +87,9 @@ void display()
 			break;
 		case 1:
 			//cockpit view
-
 			cameraPosition = rocketShip.GetObjectWorldPosition();
-			cameraPosition += (rocketShip.Up() * 0.15f);
-			cameraPosition += (rocketShip.Forward() * 0.19f);
+			cameraPosition += (rocketShip.Up() * 0.08f);
+			cameraPosition += (rocketShip.Forward() * 0.09f);
 
 			cameraTarget = rocketShip.GetObjectWorldPosition();
 			cameraTarget += (rocketShip.Forward() * 2.0f);
@@ -104,17 +102,17 @@ void display()
 			
 			break;
 		default:
-			//Random arbitrary camera in space
-			viewingMatrix = glm::lookAt(glm::vec3(30.0f, 100.0f, 80.0f), glm::vec3(30.0f, -50.0f, 80.0f), glm::vec3(0, 0.0, 1.0));
+			//Looking down at sun POV
+			viewingMatrix = glm::lookAt(glm::vec3(0.0, 500.0f, 0.0), glm::vec3(0.0, -50.0f, 0.0), glm::vec3(0, 0.0, 1.0));
 	}
 
 	//Player rendering
-	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders, lights);
-	//Render planets
+	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders, lights, playerSpot);
 
+	//Render planets
 	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
 	{
-		it->render(viewingMatrix, ProjectionMatrix, showAllColliders, lights);
+		it->render(viewingMatrix, ProjectionMatrix, showAllColliders, lights, playerSpot);
 	}
 	glFlush();
 	glutSwapBuffers();
@@ -127,47 +125,77 @@ void reshape(int width, int height)		// Resize the OpenGL window
 	glViewport(0,0,width,height);						// Reset The Current Viewport
 
 	//Set the projection matrix
-	ProjectionMatrix = glm::perspective(glm::radians(25.0f), (GLfloat)screenWidth/(GLfloat)screenHeight, 0.001f, 400.0f);
+	ProjectionMatrix = glm::perspective(glm::radians(25.0f), (GLfloat)screenWidth/(GLfloat)screenHeight, 0.001f, 800.0f);
 }
 void init()
 {
 	//Open GL stuff
-	glClearColor(0.0,0.0,0.0,0.0);						//sets the clear colour to yellow
+	glClearColor(0.0,0.0,0.0,0.0);						//sets the clear colour to black
 														//glClear(GL_COLOR_BUFFER_BIT) in the display function
 														//will clear the buffer to this colour
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
 	lights.push_back(PointLight());
-	//Create simple light
+	//Create light for the Star
 	lights[0].ambient = {0.8, 0.8, 0.8};
 	lights[0].diffuse = { 0.8, 0.8, 0.8 };
 	lights[0].specular = glm::vec3(1.0);
-	lights[0].position = glm::vec3(35.0f, 0.0f, 80.0f);
+	lights[0].position = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	lights[0].constant = 1.0f;
-	lights[0].linear = 0.045;
-	lights[0].quadratic = 0.0075;
+	lights[0].linear = 0.007;
+	lights[0].quadratic = 0.0002;
 
-	//Object setup
+	//Player setup
 	rocketShip.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	rocketShip.init("Models/Ship/Ship.obj");
-	rocketShip.Move(glm::vec3(1.0, 0.0, 0.0), 45.0f);
-	rocketShip.Move(glm::vec3(0.0, 0.0, 1.0), 80.0f);
-	rocketShip.Rotate(0.0, -90.0f, 0.0);
+	rocketShip.Move(glm::vec3(1.0, 0.0, 0.0), 120);
+	rocketShip.Move(glm::vec3(0.0, 0.0, 1.0), 20);
+	rocketShip.Rotate(0.0, 225.0f ,0.0);
 
-	//Create Delmar
+	//Create ship spotlight
+	playerSpot.ambient = { 0.8, 0.8, 0.8 };
+	playerSpot.diffuse = { 0.8, 0.8, 0.8 };
+	playerSpot.specular = glm::vec3(1.0);
+	playerSpot.position = glm::vec3(0.0f, 0.0f, 0.0f);
+
+	playerSpot.constant = 1.0f;
+	playerSpot.linear = 0.35;
+	playerSpot.quadratic = 0.44;
+
+	playerSpot.position = rocketShip.GetObjectWorldPosition() + (rocketShip.Up() * 0.15f);
+	playerSpot.direction = rocketShip.Forward();
+	playerSpot.cutOff = 12.5f;
+
+	//Create star
 	Bodies.push_back(CelestialBody(0));
 	Bodies[0].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
-	Bodies[0].initialVelocity = glm::vec3(0.002f, 0.0f, 0.002f);
-	Bodies[0].init("Models/Bodies/Delmar/Delmar.obj", glm::vec3(30.0f, 0.0f, 80.0f), glm::vec3(0.0f, 0.0f, 0.0f), 3000.0f);
+	Bodies[0].init("Models/Bodies/Star/Star.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+
+	//Create Delmar
+	Bodies.push_back(CelestialBody(1));
+	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
+	Bodies[1].init("Models/Bodies/Delmar/Delmar.obj", glm::vec3(100.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	Bodies[1].SetOrbit(0, 0.001f, 100.0f);
 
 	//Create moon
-    Bodies.push_back(CelestialBody(1));
-	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
-	Bodies[1].initialVelocity = glm::vec3(0.0f, 0.0f, 0.25f);
-	Bodies[1].init("Models/Bodies/Moon/Moon.obj", glm::vec3(0.0f, 0.0f, 80.0f), glm::vec3(0.0f, 0.0f, 0.0f), 1.0f);
+    Bodies.push_back(CelestialBody(2));
+	Bodies[2].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
+	Bodies[2].init("Models/Bodies/Moon/Moon.obj", glm::vec3(130.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	Bodies[2].SetOrbit(1, 0.01f, 30.0f);
+}
 
+void UpdateOrbits()
+{
+	for (int i = 0; i < Bodies.size(); i++)
+	{
+		if (Bodies[i].orbitingBodyIndex != -1)
+		{
+			int orbitindex = Bodies[i].orbitingBodyIndex;
+			Bodies[i].UpdateOrbit(Bodies[orbitindex].GetObjectWorldPosition(), deltaTime);
+		}
+	}
 }
 
 void ApplyGravity()
@@ -217,14 +245,13 @@ void CheckCollisions()
 			float Rc = playerDistance - it->GetColliderSphereRadius();
 			float P = playerDistance - (Rp + Rc);
 
-			//TODO: If implementing newtonian physics replace this with a real equation based on velocity.
 			rocketShip.Move(repulseDirection, P);
 		}
 	}
 }
 
 void PlayerMovement()
-{
+{	
 	//Calculate rotation increments based on player input
 	float yawInput = (Yaw * rocketShip.GetRotationSpeed()) * deltaTime;
 	float pitchInput = (Pitch * rocketShip.GetRotationSpeed()) * deltaTime;
@@ -235,6 +262,9 @@ void PlayerMovement()
 	rocketShip.Move(rocketShip.Forward(), (Throttle * rocketShip.GetSpeed()) * deltaTime);
 	//Calculate player vertical thrust
 	rocketShip.Move(rocketShip.Up(), (VerticleThrottle * 0.003) * deltaTime);
+
+	//Finally update ship light to match new position
+	playerSpot.position = rocketShip.GetObjectWorldPosition() + (rocketShip.Up() * -0.15f);
 }
 
 void PhysicsSimulation() 
@@ -242,41 +272,11 @@ void PhysicsSimulation()
 	float currentTime = glutGet(GLUT_ELAPSED_TIME);
 	deltaTime = currentTime - lastFrameTime;
 	lastFrameTime = currentTime;
+	UpdateOrbits();
 	ApplyGravity();
 	CheckCollisions();
-	for (int i = 0; i < Bodies.size(); i++)
-	{
-		Bodies[i].UpdateVelocity(Bodies, deltaTime);
-	}
-	for (int i = 0; i < Bodies.size(); i++)
-	{
-		Bodies[i].UpdatePosition(deltaTime);
-	}
 	PlayerMovement();
 }
-
-
-
-//BEGIN DEBUG CODE
-void PrintPositions(Object* obj)
-{
-	glm::vec3 pos = obj->GetObjectWorldPosition();
-	std::cout << "Object Position: X: " << pos.x << " Y: " << pos.y << " Z: " << pos.z << std::endl;
-}
-
-void PrintDirections(Object* obj)
-{
-	glm::vec3 direction = obj->Up();
-	std::cout << "Up: X: " << direction.x << " Y: " << direction.y << " Z: " << direction.z << std::endl;
-
-	direction = obj->Forward();
-	std::cout << "FW: X: " << direction.x << " Y: " << direction.y << " Z: " << direction.z << std::endl;
-
-	direction = obj->Side();
-	std::cout << "Right: X: " << direction.x << " Y: " << direction.y << " Z: " << direction.z << std::endl << std::endl;
-}
-//END DEBUG CODE
-
 
 void special(int key, int x, int y)
 {
@@ -313,12 +313,6 @@ void specialUp(int key, int x, int y)
 		case GLUT_KEY_F3:
 			showAllColliders = !showAllColliders;
 			break;
-		case GLUT_KEY_F4:
-			PrintPositions(&rocketShip);
-			break;
-		case GLUT_KEY_F5:
-			PrintDirections(&rocketShip);
-			break;
 	}
 }
 
@@ -351,7 +345,7 @@ void KeyDown(unsigned char key, int x, int y)
 }
 void KeyUp(unsigned char key, int x, int y)
 {
-	switch (key)
+	switch (std::tolower(key))
 	{
 	case 'w':
 	case 's':
@@ -367,6 +361,9 @@ void KeyUp(unsigned char key, int x, int y)
 		break;
 	case ' ':
 		VerticleThrottle = 0.0f;
+		break;
+	case 'f':
+		playerSpot.active = !playerSpot.active;
 		break;
 	}
 }

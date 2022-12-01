@@ -1,5 +1,5 @@
 #version 400
-#define LIGHTS_NR 1
+#define LIGHTS_NR 2
 
 in  vec2 ex_TexCoord; //texture coord arriving from the vertex
 in  vec3 ex_Normal;  //normal arriving from the vertex
@@ -29,6 +29,23 @@ struct Material {
     sampler2D emissionMap;
 }; 
 uniform Material material;
+
+struct SpotLight {    
+    vec3 position;
+    
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+
+	float constant;
+    float linear;
+    float quadratic;  
+
+    vec3 direction;
+	float cutOff;
+    bool enabled;
+};  
+uniform SpotLight spotLight;
 
 vec3 PhongPointLightCalc(PointLight light, vec3 normal, vec3 ex_PositionEye, vec3 viewDirection)
 {
@@ -78,6 +95,27 @@ void main(void)
         color += PhongPointLightCalc(pointLights[i], normalize(ex_Normal), ex_PositionEye, normalize(glm::vec3(0) - ex_PositionEye));
     }
 
+    //Add spotlight calculation
+    if(spotLight.enabled)
+    {
+        vec3 lightDir = normalize(spotLight.position - ex_PositionEye);
+        float theta = dot(lightDir, normalize(spotLight.direction));
+        if(theta > spotLight.cutOff)
+        {
+            PointLight spotAsPoint;
+            spotAsPoint.position = spotLight.position;
+
+            spotAsPoint.ambient = spotLight.ambient;
+            spotAsPoint.diffuse = spotLight.diffuse;
+            spotAsPoint.specular = spotLight.specular;
+
+            spotAsPoint.constant = spotLight.constant;
+            spotAsPoint.linear =  spotLight.linear;
+            spotAsPoint.quadratic = spotLight.quadratic;
+
+            color += PhongPointLightCalc(spotAsPoint, normalize(ex_Normal), ex_PositionEye, normalize(glm::vec3(0) - ex_PositionEye));
+        }
+    }
     out_Color = vec4(color, 1.0);
 }
 
