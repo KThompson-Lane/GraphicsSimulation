@@ -330,7 +330,7 @@ void specialUp(int key, int x, int y)
 
 void KeyDown(unsigned char key, int x, int y)
 {
-	switch (key)
+	switch (std::tolower(key))
 	{
 		case 'w':
 			Pitch = -1.0f;
@@ -399,9 +399,10 @@ void updateMousePos(int x, int y)
 	{
 		mouse_x = x;
 		mouse_y = y;
-		std::cout << "Mouse X: " << mouse_x << std::endl;
-		std::cout << "Mouse Y: " << mouse_y << std::endl;
 	}
+
+	std::cout << "Mouse X: " << x << std::endl;
+	std::cout << "Mouse Y: " << y << std::endl;
 }
 
 void mouseInput(int button, int state, int x, int y)
@@ -410,22 +411,28 @@ void mouseInput(int button, int state, int x, int y)
 	{
 	case GLUT_MIDDLE_BUTTON:
 		if (state == GLUT_DOWN)
+		{
+			lastMouse_x = x;
+			lastMouse_y = y;
+			mouse_x = x;
+			mouse_y = y;
 			MiddlePressed = true;
+		}
 		else
 			MiddlePressed = false;
 	}
 }
 void UpdateCamera() 
 {
-	//TEST CODE TO USE CAMERA
 	//Get camera and pivot positions
 	glm::vec4 pivot(rocketShip.GetObjectWorldPosition(), 1.0);
 	//glm::vec4 position(mainCamera.GetEye(), 1.0);
 	glm::vec4 position(rocketShip.GetObjectWorldPosition() - (mainCamera.GetViewDir() * 10.5f), 1.0f);
 
+	
 	//Calculate rotation amount
 	float deltaX = (2 * PI / screenWidth); //Left -> right = 360
-	float deltaY = (PI / screenWidth); //Top -> bottom = 180
+	float deltaY = (PI / screenHeight); //Top -> bottom = 180
 	float xRotation = (lastMouse_x - mouse_x) * deltaX;
 	float yRotation = (lastMouse_y - mouse_y) * deltaY;
 
@@ -435,9 +442,10 @@ void UpdateCamera()
 
 	glm::mat4 rotationMatrixY(1.0f);
 	rotationMatrixY = glm::rotate(rotationMatrixY, yRotation, glm::vec3(1.0, 0.0, 0.0));
-	glm::vec3 finalPosition = (rotationMatrixY * (position - pivot)) + pivot;
+	position = (rotationMatrixY * (position - pivot)) + pivot;
+	
 
-	mainCamera.SetCameraView(finalPosition, pivot, glm::vec3(0.0, 1.0, 0.0));
+	mainCamera.SetCameraView(position, pivot, glm::vec3(0.0, 1.0, 0.0));
 
 	lastMouse_x = mouse_x;
 	lastMouse_y = mouse_y;
