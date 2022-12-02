@@ -46,6 +46,7 @@ glm::mat4 ProjectionMatrix; // matrix for the orthographic projection
 //	User Input
 int	mouse_x=0, mouse_y=0;
 bool MiddlePressed = false;
+float zoom = 10.0f;
 int screenWidth = 600, screenHeight = 600;
 bool SwitchCamera = false;
 float Throttle;
@@ -427,7 +428,7 @@ void UpdateCamera()
 	//Get camera and pivot positions
 	glm::vec4 pivot(rocketShip.GetObjectWorldPosition(), 1.0);
 	//glm::vec4 position(mainCamera.GetEye(), 1.0);
-	glm::vec4 position(rocketShip.GetObjectWorldPosition() - (mainCamera.GetViewDir() * 10.5f), 1.0f);
+	glm::vec4 position(rocketShip.GetObjectWorldPosition() - (mainCamera.GetViewDir() * zoom), 1.0f);
 
 	
 	//Calculate rotation amount
@@ -449,6 +450,15 @@ void UpdateCamera()
 
 	lastMouse_x = mouse_x;
 	lastMouse_y = mouse_y;
+}
+void ScrollWheel(int wheel, int dir, int x, int y)
+{
+	dir = -dir;
+	if (zoom + (dir * 0.5f) > 2.0f && zoom + (dir * 0.5f) < 20.0f)
+	{
+		zoom += (dir * 0.5f);
+	}
+	std::cout << "Wheel scroll in " << dir << "direction by " << y << "amount" << std::endl;
 }
 void idle()
 {
@@ -497,6 +507,7 @@ int main(int argc, char **argv)
 	//Handle mouse input 
 	glutMotionFunc(updateMousePos);
 	glutMouseFunc(mouseInput);
+	glutMouseWheelFunc(ScrollWheel);
 	glutIdleFunc(idle);
 
 	//starts the main loop. Program loops and calls callback functions as appropriate.
