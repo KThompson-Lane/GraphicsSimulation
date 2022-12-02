@@ -24,6 +24,7 @@ using namespace std;
 
 static const float G = 0.00069420f;
 Player rocketShip = Player();
+bool destroyed = false;
 
 vector<CelestialBody> Bodies;
 //Lighting
@@ -54,7 +55,7 @@ float Pitch, Yaw, Roll;
 float VerticleThrottle;
 
 bool accelerate, deccelerate;
-int CameraIndex = 0;
+int CameraIndex = 1;
 //Collider drawing
 bool showPlayerCollider, showAllColliders;
 
@@ -77,10 +78,6 @@ void display()
 
 	switch(CameraIndex)
 	{
-		case 0:
-			//Chase camera view (default)
-			viewingMatrix = mainCamera.GetViewMatrix();
-			break;
 		case 1:
 			//cockpit view
 			glm::vec3 cameraPosition = rocketShip.GetObjectWorldPosition();
@@ -94,16 +91,16 @@ void display()
 			glm::vec3 cameraRight = glm::normalize(glm::cross(rocketShip.Up(), cameraDirection));
 			glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
 			viewingMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
-			
 			break;
 		default:
-			//Looking down at sun POV
-			//viewingMatrix = glm::lookAt(glm::vec3(0.0, 500.0f, 0.0), glm::vec3(0.0, -50.0f, 0.0), glm::vec3(0, 0.0, 1.0));
 			viewingMatrix = mainCamera.GetViewMatrix();
 	}
 
 	//Player rendering
-	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders, lights, playerSpot);
+	if (!destroyed)
+	{
+		rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders, lights, playerSpot);
+	}
 
 	//Render planets
 	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
@@ -192,16 +189,16 @@ void UpdateCamera()
 	switch (CameraIndex)
 	{
 	case 0:
-		//Set min & max zoom boundaries and focus to player
-		minZoom = rocketShip.GetColliderSphereRadius() * 1.5;
-		maxZoom = rocketShip.GetColliderSphereRadius() * 15;	
-		focusPosition = rocketShip.GetObjectWorldPosition();
-		break;
-	case 2:
 		//Set min & max zoom boundaries and focus to star
 		minZoom = Bodies[0].GetColliderSphereRadius() * 5;
 		maxZoom = Bodies[0].GetColliderSphereRadius() * 30;
 		focusPosition = Bodies[0].GetObjectWorldPosition();
+		break;
+	case 2:
+		//Set min & max zoom boundaries and focus to player
+		minZoom = rocketShip.GetColliderSphereRadius() * 1.5;
+		maxZoom = rocketShip.GetColliderSphereRadius() * 15;
+		focusPosition = rocketShip.GetObjectWorldPosition();
 		break;
 	}
 
@@ -231,9 +228,16 @@ void UpdateCamera()
 	position = (glm::toMat4(cameraOrientation) * (position - pivot)) + pivot;
 
 	mainCamera.SetCameraView(position, pivot, glm::vec3(0.0, 1.0, 0.0));
-
+	
 	lastMouse_x = mouse_x;
 	lastMouse_y = mouse_y;
+}
+
+void DestroyPlayer() 
+{
+	destroyed = true;
+	playerSpot.active = false;
+	CameraIndex = 0;
 }
 
 void UpdateOrbits()
@@ -289,6 +293,11 @@ void CheckCollisions()
 		float colliderRadi = it->GetColliderSphereRadius() + rocketShip.GetColliderSphereRadius();
 		if (playerDistance <= colliderRadi)
 		{
+			if (it->index == 0)
+			{
+				DestroyPlayer();
+				return;
+			}
 			glm::vec3 repulseDirection = normalize(playerPosition - planetPosition);
 
 			float Rp = playerDistance - rocketShip.GetColliderSphereRadius();
@@ -323,9 +332,12 @@ void PhysicsSimulation()
 	deltaTime = currentTime - lastFrameTime;
 	lastFrameTime = currentTime;
 	UpdateOrbits();
-	ApplyGravity();
-	CheckCollisions();
-	PlayerMovement();
+	if (!destroyed)
+	{
+		ApplyGravity();
+		CheckCollisions();
+		PlayerMovement();
+	}
 }
 
 void special(int key, int x, int y)
@@ -354,7 +366,7 @@ void specialUp(int key, int x, int y)
 			deccelerate = false;
 			break;
 		case GLUT_KEY_F1:
-			if (++CameraIndex == 3)
+			if (++CameraIndex == 3 || destroyed)
 				CameraIndex = 0;
 			break;
 		case GLUT_KEY_F2:
@@ -413,7 +425,8 @@ void KeyUp(unsigned char key, int x, int y)
 		VerticleThrottle = 0.0f;
 		break;
 	case 'f':
-		playerSpot.active = !playerSpot.active;
+		if (!destroyed)
+			playerSpot.active = !playerSpot.active;
 		break;
 	}
 }
