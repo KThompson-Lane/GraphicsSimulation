@@ -22,7 +22,7 @@ using namespace std;
 #include "Object/Player.h"
 #include "Object/CelestialBody.h"
 
-static const float G = 0.69420f;
+static const float G = 0.00069420f;
 Player rocketShip = Player();
 
 vector<CelestialBody> Bodies;
@@ -223,7 +223,7 @@ void ApplyGravity()
 	float m2 = Bodies[closestPlanetIndex].GetColliderSphereRadius();
 
 	float strength = G * ((m1 * m2) / (nearest * nearest));
-	rocketShip.Move(attractDirection, strength);
+	rocketShip.Move(attractDirection, strength * deltaTime);
 	
 }
 

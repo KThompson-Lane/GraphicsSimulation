@@ -6,7 +6,6 @@ class CelestialBody : public Object
 	//private members
 private:
 	//public members
-	const float G = 0.0000694f;
 public:
 	int orbitingBodyIndex = -1;
 	int index;
