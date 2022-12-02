@@ -141,7 +141,7 @@ void init()
 	lights[0].quadratic = 0.0002;
 
 	//Player setup
-	rocketShip.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
+	rocketShip.setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	rocketShip.init("Models/Ship/Ship.obj");
 	rocketShip.Move(glm::vec3(1.0, 0.0, 0.0), 120);
 	rocketShip.Move(glm::vec3(0.0, 0.0, 1.0), 20);
@@ -163,18 +163,18 @@ void init()
 
 	//Create star
 	Bodies.push_back(CelestialBody(0));
-	Bodies[0].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
+	Bodies[0].setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[0].init("Models/Bodies/Star/Star.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
 	//Create Delmar
 	Bodies.push_back(CelestialBody(1));
-	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
+	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[1].init("Models/Bodies/Delmar/Delmar.obj", glm::vec3(100.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 	Bodies[1].SetOrbit(0, 0.0003f, 100.0f);
 
 	//Create moon
     Bodies.push_back(CelestialBody(2));
-	Bodies[2].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
+	Bodies[2].setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[2].init("Models/Bodies/Moon/Moon.obj", glm::vec3(130.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 	Bodies[2].SetOrbit(1, 0.003f, 30.0f);
 
@@ -328,7 +328,6 @@ void CheckCollisions()
 void PlayerMovement()
 {	
 	//Calculate rotation increments based on player input
-
 	if (!rocketShip.landed)
 	{
 		float yawInput = (Yaw * rocketShip.GetRotationSpeed()) * deltaTime;
@@ -401,6 +400,10 @@ void specialUp(int key, int x, int y)
 			break;
 		case GLUT_KEY_F3:
 			showAllColliders = !showAllColliders;
+			break;
+		case GLUT_KEY_F4:
+			//DEBUG CODE
+			rocketShip.Crash();
 			break;
 	}
 }

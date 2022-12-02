@@ -30,6 +30,8 @@ protected:
 	glm::mat4 objectModelMatrix;
 	glm::vec3 objectPosition;
 	glm::quat objectRotation;
+	float amount = 0.0f;
+
 //public members
 public:
 	CThreeDModel model;

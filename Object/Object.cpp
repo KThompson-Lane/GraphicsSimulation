@@ -12,10 +12,6 @@ struct Material{
 };
 Material material;
 
-//Displacement stuff
-float amount = 0.1f;
-float temp = 0.0f;
-
 void Object::init(char* modelFile)
 {
 	std::cout << " loading model " << std::endl;
@@ -74,13 +70,10 @@ void Object::setupShader(char* shaderName, char* vertPath, char* fragPath)
 void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, std::vector<PointLight>& lights, SpotLight& playerSpotLight)
 {
 	glUseProgram(objectShader.GetProgramObjID());  // use the shader
+
 	//Displacement stuffs
 	
 	//Part for displacement shader.
-	amount += temp;
-	if (amount > 1.0f || amount < -1.5f)
-		temp = -temp;
-	//amount = 0;
 	glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), "displacement"), amount);
 	
 

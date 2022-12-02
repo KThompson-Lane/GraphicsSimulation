@@ -26,6 +26,7 @@ public:
 	void UpdatePosition(float deltaTime);
 	void Land(glm::vec3 landingPosition, Object& landingObject);
 	void TakeOff();
+	void Crash();
 	glm::vec3 GetVelocity() const { return velocity; }
 };
 

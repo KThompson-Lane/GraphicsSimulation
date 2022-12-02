@@ -51,3 +51,8 @@ void Player::TakeOff()
 	landed = false;
 	landedObject = nullptr;
 }
+
+void Player::Crash()
+{
+	this->amount += 0.03f;
+}
