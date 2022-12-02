@@ -54,5 +54,5 @@ void Player::TakeOff()
 
 void Player::Crash()
 {
-	this->amount += 0.03f;
+	this->amount += glm::length(velocity) * 10;
 }

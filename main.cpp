@@ -97,10 +97,10 @@ void display()
 	}
 
 	//Player rendering
-	if (!destroyed)
-	{
+	//if (!destroyed)
+	//{
 		rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders, lights, playerSpot);
-	}
+	//}
 
 	//Render planets
 	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
@@ -237,7 +237,7 @@ void DestroyPlayer()
 {
 	destroyed = true;
 	playerSpot.active = false;
-	CameraIndex = 0;
+	//CameraIndex = 0;
 }
 
 void UpdateOrbits()
@@ -295,25 +295,27 @@ void CheckCollisions()
 		{
 			glm::vec3 repulseDirection = normalize(playerPosition - planetPosition);
 			//Check if player safely landed
+			if (!destroyed)
+			{
 				//If landing on star, destroy player
-			if (it->index == 0)
-			{
-				DestroyPlayer();
-				return;
-			}
+				if (it->index == 0)
+				{
+					rocketShip.Crash();
+					DestroyPlayer();
+				}
 				//If player velocity too high, destroy player
-			else if (glm::length(rocketShip.GetVelocity()) > 2.0f)
-			{
-				DestroyPlayer();
-				return;
-			}
+				else if (glm::length(rocketShip.GetVelocity()) > 2.0f)
+				{
+					rocketShip.Crash();
+					DestroyPlayer();
+				}
 				//If player is not landing in the right orientation e.g. upside down, destroy player
-			else if (distance(glm::normalize(rocketShip.Up()), repulseDirection) > 0.5f)
-			{
-				DestroyPlayer();
-				return;
+				else if (distance(glm::normalize(rocketShip.Up()), repulseDirection) > 0.5f)
+				{
+					rocketShip.Crash();
+					DestroyPlayer();
+				}
 			}
-
 			float Rp = playerDistance - rocketShip.GetColliderSphereRadius();
 			float Rc = playerDistance - it->GetColliderSphereRadius();
 			float P = playerDistance - (Rp + Rc);
@@ -328,7 +330,7 @@ void CheckCollisions()
 void PlayerMovement()
 {	
 	//Calculate rotation increments based on player input
-	if (!rocketShip.landed)
+	if (!rocketShip.landed && !destroyed)
 	{
 		float yawInput = (Yaw * rocketShip.GetRotationSpeed()) * deltaTime;
 		float pitchInput = (Pitch * rocketShip.GetRotationSpeed()) * deltaTime;
@@ -340,7 +342,7 @@ void PlayerMovement()
 		//Replace 0.0003f with a const value for vertical acceleration force;
 		rocketShip.AddForce(rocketShip.Up() * (VerticleThrottle * 0.00003f));
 	}
-	else if (VerticleThrottle == 1.0f)
+	else if (VerticleThrottle == 1.0f && !destroyed)
 	{
 		rocketShip.TakeOff();
 		rocketShip.AddForce(rocketShip.Up() * (VerticleThrottle * 0.003f));
@@ -358,12 +360,11 @@ void PhysicsSimulation()
 	deltaTime = currentTime - lastFrameTime;
 	lastFrameTime = currentTime;
 	UpdateOrbits();
-	if (!destroyed)
-	{
-		ApplyGravity();
-		PlayerMovement();
-		CheckCollisions();
-	}
+
+	ApplyGravity();
+	PlayerMovement();
+	CheckCollisions();
+
 }
 
 void special(int key, int x, int y)
