@@ -17,7 +17,7 @@ uniform float displacement;
 
 void main(void)
 {
-	vec3 newVertexPos = (in_Normal * displacement) + in_Position;
+	vec3 newVertexPos = (-in_Normal * displacement) + in_Position;
 
 	gl_Position = ProjectionMatrix * ModelViewMatrix * vec4(newVertexPos, 1.0);
 

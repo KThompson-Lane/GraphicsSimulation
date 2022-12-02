@@ -24,6 +24,7 @@ using namespace std;
 
 static const float G = 0.00069420f;
 Player rocketShip = Player();
+bool destroyed = false;
 
 vector<CelestialBody> Bodies;
 //Lighting
@@ -54,7 +55,7 @@ float Pitch, Yaw, Roll;
 float VerticleThrottle;
 
 bool accelerate, deccelerate;
-int CameraIndex = 0;
+int CameraIndex = 1;
 //Collider drawing
 bool showPlayerCollider, showAllColliders;
 
@@ -77,10 +78,6 @@ void display()
 
 	switch(CameraIndex)
 	{
-		case 0:
-			//Chase camera view (default)
-			viewingMatrix = mainCamera.GetViewMatrix();
-			break;
 		case 1:
 			//cockpit view
 			glm::vec3 cameraPosition = rocketShip.GetObjectWorldPosition();
@@ -94,16 +91,16 @@ void display()
 			glm::vec3 cameraRight = glm::normalize(glm::cross(rocketShip.Up(), cameraDirection));
 			glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
 			viewingMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
-			
 			break;
 		default:
-			//Looking down at sun POV
-			//viewingMatrix = glm::lookAt(glm::vec3(0.0, 500.0f, 0.0), glm::vec3(0.0, -50.0f, 0.0), glm::vec3(0, 0.0, 1.0));
 			viewingMatrix = mainCamera.GetViewMatrix();
 	}
 
 	//Player rendering
-	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders, lights, playerSpot);
+	//if (!destroyed)
+	//{
+		rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders, lights, playerSpot);
+	//}
 
 	//Render planets
 	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
@@ -144,7 +141,7 @@ void init()
 	lights[0].quadratic = 0.0002;
 
 	//Player setup
-	rocketShip.setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
+	rocketShip.setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	rocketShip.init("Models/Ship/Ship.obj");
 	rocketShip.Move(glm::vec3(1.0, 0.0, 0.0), 120);
 	rocketShip.Move(glm::vec3(0.0, 0.0, 1.0), 20);
@@ -166,20 +163,20 @@ void init()
 
 	//Create star
 	Bodies.push_back(CelestialBody(0));
-	Bodies[0].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
+	Bodies[0].setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[0].init("Models/Bodies/Star/Star.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
 	//Create Delmar
 	Bodies.push_back(CelestialBody(1));
-	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
+	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[1].init("Models/Bodies/Delmar/Delmar.obj", glm::vec3(100.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-	Bodies[1].SetOrbit(0, 0.001f, 100.0f);
+	Bodies[1].SetOrbit(0, 0.0003f, 100.0f);
 
 	//Create moon
     Bodies.push_back(CelestialBody(2));
-	Bodies[2].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
+	Bodies[2].setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[2].init("Models/Bodies/Moon/Moon.obj", glm::vec3(130.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-	Bodies[2].SetOrbit(1, 0.01f, 30.0f);
+	Bodies[2].SetOrbit(1, 0.003f, 30.0f);
 
 	//Setup Camera
 	mainCamera.SetCameraView(glm::vec3(120.0f, 0.0, 30.0f), rocketShip.GetObjectWorldPosition(), glm::vec3(0.0, 1.0, 0.0));
@@ -192,16 +189,16 @@ void UpdateCamera()
 	switch (CameraIndex)
 	{
 	case 0:
-		//Set min & max zoom boundaries and focus to player
-		minZoom = rocketShip.GetColliderSphereRadius() * 1.5;
-		maxZoom = rocketShip.GetColliderSphereRadius() * 15;	
-		focusPosition = rocketShip.GetObjectWorldPosition();
-		break;
-	case 2:
 		//Set min & max zoom boundaries and focus to star
 		minZoom = Bodies[0].GetColliderSphereRadius() * 5;
 		maxZoom = Bodies[0].GetColliderSphereRadius() * 30;
 		focusPosition = Bodies[0].GetObjectWorldPosition();
+		break;
+	case 2:
+		//Set min & max zoom boundaries and focus to player
+		minZoom = rocketShip.GetColliderSphereRadius() * 1.5;
+		maxZoom = rocketShip.GetColliderSphereRadius() * 15;
+		focusPosition = rocketShip.GetObjectWorldPosition();
 		break;
 	}
 
@@ -231,9 +228,16 @@ void UpdateCamera()
 	position = (glm::toMat4(cameraOrientation) * (position - pivot)) + pivot;
 
 	mainCamera.SetCameraView(position, pivot, glm::vec3(0.0, 1.0, 0.0));
-
+	
 	lastMouse_x = mouse_x;
 	lastMouse_y = mouse_y;
+}
+
+void DestroyPlayer() 
+{
+	destroyed = true;
+	playerSpot.active = false;
+	//CameraIndex = 0;
 }
 
 void UpdateOrbits()
@@ -251,6 +255,7 @@ void UpdateOrbits()
 void ApplyGravity()
 {
 	glm::vec3 playerPosition = rocketShip.GetObjectWorldPosition();
+
 	//Apply gravity to nearest celestial body
 	float nearest = 1000.0f;
 	int closestPlanetIndex = 0;
@@ -273,8 +278,7 @@ void ApplyGravity()
 	float m2 = Bodies[closestPlanetIndex].GetColliderSphereRadius();
 
 	float strength = G * ((m1 * m2) / (nearest * nearest));
-	rocketShip.Move(attractDirection, strength * deltaTime);
-	
+	rocketShip.AddForce(attractDirection * strength);
 }
 
 void CheckCollisions()
@@ -290,12 +294,35 @@ void CheckCollisions()
 		if (playerDistance <= colliderRadi)
 		{
 			glm::vec3 repulseDirection = normalize(playerPosition - planetPosition);
-
+			//Check if player safely landed
+			if (!destroyed)
+			{
+				//If landing on star, destroy player
+				if (it->index == 0)
+				{
+					rocketShip.Crash();
+					DestroyPlayer();
+				}
+				//If player velocity too high, destroy player
+				else if (glm::length(rocketShip.GetVelocity()) > 2.0f)
+				{
+					rocketShip.Crash();
+					DestroyPlayer();
+				}
+				//If player is not landing in the right orientation e.g. upside down, destroy player
+				else if (distance(glm::normalize(rocketShip.Up()), repulseDirection) > 0.5f)
+				{
+					rocketShip.Crash();
+					DestroyPlayer();
+				}
+			}
 			float Rp = playerDistance - rocketShip.GetColliderSphereRadius();
 			float Rc = playerDistance - it->GetColliderSphereRadius();
 			float P = playerDistance - (Rp + Rc);
 
 			rocketShip.Move(repulseDirection, P);
+			rocketShip.Land(repulseDirection * P, *it);
+			rocketShip.AddForce(-(rocketShip.GetVelocity()));
 		}
 	}
 }
@@ -303,15 +330,25 @@ void CheckCollisions()
 void PlayerMovement()
 {	
 	//Calculate rotation increments based on player input
-	float yawInput = (Yaw * rocketShip.GetRotationSpeed()) * deltaTime;
-	float pitchInput = (Pitch * rocketShip.GetRotationSpeed()) * deltaTime;
-	float rollInput = (Roll * rocketShip.GetRotationSpeed()) * deltaTime;
-	rocketShip.Rotate(pitchInput, yawInput, rollInput);
+	if (!rocketShip.landed && !destroyed)
+	{
+		float yawInput = (Yaw * rocketShip.GetRotationSpeed()) * deltaTime;
+		float pitchInput = (Pitch * rocketShip.GetRotationSpeed()) * deltaTime;
+		float rollInput = (Roll * rocketShip.GetRotationSpeed()) * deltaTime;
+		rocketShip.Rotate(pitchInput, yawInput, rollInput);
 
-	//Calculate player forward thrust
-	rocketShip.Move(rocketShip.Forward(), (Throttle * rocketShip.GetSpeed()) * deltaTime);
-	//Calculate player vertical thrust
-	rocketShip.Move(rocketShip.Up(), (VerticleThrottle * 0.003) * deltaTime);
+
+		rocketShip.AddForce(rocketShip.Forward() * (Throttle * rocketShip.GetSpeed()));
+		//Replace 0.0003f with a const value for vertical acceleration force;
+		rocketShip.AddForce(rocketShip.Up() * (VerticleThrottle * 0.00003f));
+	}
+	else if (VerticleThrottle == 1.0f && !destroyed)
+	{
+		rocketShip.TakeOff();
+		rocketShip.AddForce(rocketShip.Up() * (VerticleThrottle * 0.003f));
+	}
+
+	rocketShip.UpdatePosition(deltaTime);
 
 	//Finally update ship light to match new position
 	playerSpot.position = rocketShip.GetObjectWorldPosition() + (rocketShip.Up() * -0.15f);
@@ -323,9 +360,11 @@ void PhysicsSimulation()
 	deltaTime = currentTime - lastFrameTime;
 	lastFrameTime = currentTime;
 	UpdateOrbits();
+
 	ApplyGravity();
-	CheckCollisions();
 	PlayerMovement();
+	CheckCollisions();
+
 }
 
 void special(int key, int x, int y)
@@ -354,7 +393,7 @@ void specialUp(int key, int x, int y)
 			deccelerate = false;
 			break;
 		case GLUT_KEY_F1:
-			if (++CameraIndex == 3)
+			if (++CameraIndex == 3 || destroyed)
 				CameraIndex = 0;
 			break;
 		case GLUT_KEY_F2:
@@ -362,6 +401,10 @@ void specialUp(int key, int x, int y)
 			break;
 		case GLUT_KEY_F3:
 			showAllColliders = !showAllColliders;
+			break;
+		case GLUT_KEY_F4:
+			//DEBUG CODE
+			rocketShip.Crash();
 			break;
 	}
 }
@@ -413,7 +456,8 @@ void KeyUp(unsigned char key, int x, int y)
 		VerticleThrottle = 0.0f;
 		break;
 	case 'f':
-		playerSpot.active = !playerSpot.active;
+		if (!destroyed)
+			playerSpot.active = !playerSpot.active;
 		break;
 	}
 }
