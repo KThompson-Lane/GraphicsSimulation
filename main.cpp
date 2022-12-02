@@ -170,13 +170,13 @@ void init()
 	Bodies.push_back(CelestialBody(1));
 	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[1].init("Models/Bodies/Delmar/Delmar.obj", glm::vec3(100.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-	Bodies[1].SetOrbit(0, 0.001f, 100.0f);
+	Bodies[1].SetOrbit(0, 0.0003f, 100.0f);
 
 	//Create moon
     Bodies.push_back(CelestialBody(2));
 	Bodies[2].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[2].init("Models/Bodies/Moon/Moon.obj", glm::vec3(130.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-	Bodies[2].SetOrbit(1, 0.01f, 30.0f);
+	Bodies[2].SetOrbit(1, 0.003f, 30.0f);
 
 	//Setup Camera
 	mainCamera.SetCameraView(glm::vec3(120.0f, 0.0, 30.0f), rocketShip.GetObjectWorldPosition(), glm::vec3(0.0, 1.0, 0.0));
@@ -255,6 +255,7 @@ void UpdateOrbits()
 void ApplyGravity()
 {
 	glm::vec3 playerPosition = rocketShip.GetObjectWorldPosition();
+
 	//Apply gravity to nearest celestial body
 	float nearest = 1000.0f;
 	int closestPlanetIndex = 0;
@@ -277,8 +278,7 @@ void ApplyGravity()
 	float m2 = Bodies[closestPlanetIndex].GetColliderSphereRadius();
 
 	float strength = G * ((m1 * m2) / (nearest * nearest));
-	rocketShip.Move(attractDirection, strength * deltaTime);
-	
+	rocketShip.AddForce(attractDirection * strength);
 }
 
 void CheckCollisions()
@@ -293,18 +293,34 @@ void CheckCollisions()
 		float colliderRadi = it->GetColliderSphereRadius() + rocketShip.GetColliderSphereRadius();
 		if (playerDistance <= colliderRadi)
 		{
+			glm::vec3 repulseDirection = normalize(playerPosition - planetPosition);
+			//Check if player safely landed
+				//If landing on star, destroy player
 			if (it->index == 0)
 			{
 				DestroyPlayer();
 				return;
 			}
-			glm::vec3 repulseDirection = normalize(playerPosition - planetPosition);
+				//If player velocity too high, destroy player
+			else if (glm::length(rocketShip.GetVelocity()) > 2.0f)
+			{
+				DestroyPlayer();
+				return;
+			}
+				//If player is not landing in the right orientation e.g. upside down, destroy player
+			else if (distance(glm::normalize(rocketShip.Up()), repulseDirection) > 0.5f)
+			{
+				DestroyPlayer();
+				return;
+			}
 
 			float Rp = playerDistance - rocketShip.GetColliderSphereRadius();
 			float Rc = playerDistance - it->GetColliderSphereRadius();
 			float P = playerDistance - (Rp + Rc);
 
 			rocketShip.Move(repulseDirection, P);
+			rocketShip.Land(repulseDirection * P, *it);
+			rocketShip.AddForce(-(rocketShip.GetVelocity()));
 		}
 	}
 }
@@ -312,15 +328,26 @@ void CheckCollisions()
 void PlayerMovement()
 {	
 	//Calculate rotation increments based on player input
-	float yawInput = (Yaw * rocketShip.GetRotationSpeed()) * deltaTime;
-	float pitchInput = (Pitch * rocketShip.GetRotationSpeed()) * deltaTime;
-	float rollInput = (Roll * rocketShip.GetRotationSpeed()) * deltaTime;
-	rocketShip.Rotate(pitchInput, yawInput, rollInput);
 
-	//Calculate player forward thrust
-	rocketShip.Move(rocketShip.Forward(), (Throttle * rocketShip.GetSpeed()) * deltaTime);
-	//Calculate player vertical thrust
-	rocketShip.Move(rocketShip.Up(), (VerticleThrottle * 0.003) * deltaTime);
+	if (!rocketShip.landed)
+	{
+		float yawInput = (Yaw * rocketShip.GetRotationSpeed()) * deltaTime;
+		float pitchInput = (Pitch * rocketShip.GetRotationSpeed()) * deltaTime;
+		float rollInput = (Roll * rocketShip.GetRotationSpeed()) * deltaTime;
+		rocketShip.Rotate(pitchInput, yawInput, rollInput);
+
+
+		rocketShip.AddForce(rocketShip.Forward() * (Throttle * rocketShip.GetSpeed()));
+		//Replace 0.0003f with a const value for vertical acceleration force;
+		rocketShip.AddForce(rocketShip.Up() * (VerticleThrottle * 0.00003f));
+	}
+	else if (VerticleThrottle == 1.0f)
+	{
+		rocketShip.TakeOff();
+		rocketShip.AddForce(rocketShip.Up() * (VerticleThrottle * 0.003f));
+	}
+
+	rocketShip.UpdatePosition(deltaTime);
 
 	//Finally update ship light to match new position
 	playerSpot.position = rocketShip.GetObjectWorldPosition() + (rocketShip.Up() * -0.15f);
@@ -335,8 +362,8 @@ void PhysicsSimulation()
 	if (!destroyed)
 	{
 		ApplyGravity();
-		CheckCollisions();
 		PlayerMovement();
+		CheckCollisions();
 	}
 }
 
