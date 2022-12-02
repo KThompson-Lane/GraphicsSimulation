@@ -79,41 +79,26 @@ void display()
 	{
 		case 0:
 			//Chase camera view (default)
+			viewingMatrix = mainCamera.GetViewMatrix();
+			break;
+		case 1:
+			//cockpit view
 			glm::vec3 cameraPosition = rocketShip.GetObjectWorldPosition();
-			cameraPosition += (rocketShip.Up() * 1.5f);
-			cameraPosition += (rocketShip.Forward() * -5.0f);
+			cameraPosition += (rocketShip.Up() * 0.08f);
+			cameraPosition += (rocketShip.Forward() * 0.09f);
 
 			glm::vec3 cameraTarget = rocketShip.GetObjectWorldPosition();
-			cameraTarget += (rocketShip.Forward() * 5.0f);
+			cameraTarget += (rocketShip.Forward() * 2.0f);
 
 			glm::vec3 cameraDirection = glm::normalize(cameraPosition - cameraTarget);
 			glm::vec3 cameraRight = glm::normalize(glm::cross(rocketShip.Up(), cameraDirection));
 			glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
-
-			viewingMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
-			break;
-		case 1:
-			//cockpit view
-			cameraPosition = rocketShip.GetObjectWorldPosition();
-			cameraPosition += (rocketShip.Up() * 0.08f);
-			cameraPosition += (rocketShip.Forward() * 0.09f);
-
-			cameraTarget = rocketShip.GetObjectWorldPosition();
-			cameraTarget += (rocketShip.Forward() * 2.0f);
-
-			cameraDirection = glm::normalize(cameraPosition - cameraTarget);
-			cameraRight = glm::normalize(glm::cross(rocketShip.Up(), cameraDirection));
-			cameraUp = glm::cross(cameraDirection, cameraRight);
-
 			viewingMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
 			
 			break;
 		default:
 			//Looking down at sun POV
-			//viewingMatrix = glm::lookAt(glm::vec3(0.0, 500.0f, 0.0), glm::vec3(0.0, -50.0f, 0.0), glm::vec3(0, 0.0, 1.0));
-			
-			//TEST CODE TO USE CAMERA
-			viewingMatrix = mainCamera.GetViewMatrix();
+			viewingMatrix = glm::lookAt(glm::vec3(0.0, 500.0f, 0.0), glm::vec3(0.0, -50.0f, 0.0), glm::vec3(0, 0.0, 1.0));
 	}
 
 	//Player rendering
@@ -401,9 +386,6 @@ void updateMousePos(int x, int y)
 		mouse_x = x;
 		mouse_y = y;
 	}
-
-	std::cout << "Mouse X: " << x << std::endl;
-	std::cout << "Mouse Y: " << y << std::endl;
 }
 
 void mouseInput(int button, int state, int x, int y)
@@ -458,7 +440,6 @@ void ScrollWheel(int wheel, int dir, int x, int y)
 	{
 		zoom += (dir * 0.5f);
 	}
-	std::cout << "Wheel scroll in " << dir << "direction by " << y << "amount" << std::endl;
 }
 void idle()
 {
