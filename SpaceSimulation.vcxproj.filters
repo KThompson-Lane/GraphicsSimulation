@@ -35,6 +35,7 @@
     <ClCompile Include="Object\CelestialBody.cpp" />
     <ClCompile Include="Object\Player.cpp" />
     <ClCompile Include="sphere\Sphere.cpp" />
+    <ClCompile Include="Camera\Camera.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3dStruct\threeDModel.h">
@@ -72,6 +73,7 @@
     <ClInclude Include="Object\Player.h" />
     <ClInclude Include="sphere\Sphere.h" />
     <ClInclude Include="Light\Light.h" />
+    <ClInclude Include="Camera\Camera.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="headers">

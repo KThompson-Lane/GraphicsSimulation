@@ -22,16 +22,22 @@ using namespace std;
 #include "Object/Player.h"
 #include "Object/CelestialBody.h"
 
-static const float G = 0.69420f;
+static const float G = 0.00069420f;
 Player rocketShip = Player();
 
 vector<CelestialBody> Bodies;
-vector<PointLight> lights;
-SpotLight playerSpot;
-///END MODEL LOADING
-
 //Lighting
 #include "Light/Light.h"
+vector<PointLight> lights;
+SpotLight playerSpot;
+
+//Camera
+#include "Camera/Camera.h"
+Camera mainCamera;
+int lastMouse_x = 0, lastMouse_y = 0;
+
+///END MODEL LOADING
+
 
 CShader boundShader;
 
@@ -39,7 +45,8 @@ glm::mat4 ProjectionMatrix; // matrix for the orthographic projection
 
 //	User Input
 int	mouse_x=0, mouse_y=0;
-bool LeftPressed = false;
+bool MiddlePressed = false;
+float zoom = 10.0f, minZoom = 2.0f, maxZoom = 20.0f;
 int screenWidth = 600, screenHeight = 600;
 bool SwitchCamera = false;
 float Throttle;
@@ -72,38 +79,27 @@ void display()
 	{
 		case 0:
 			//Chase camera view (default)
+			viewingMatrix = mainCamera.GetViewMatrix();
+			break;
+		case 1:
+			//cockpit view
 			glm::vec3 cameraPosition = rocketShip.GetObjectWorldPosition();
-			cameraPosition += (rocketShip.Up() * 1.5f);
-			cameraPosition += (rocketShip.Forward() * -5.0f);
+			cameraPosition += (rocketShip.Up() * 0.08f);
+			cameraPosition += (rocketShip.Forward() * 0.09f);
 
 			glm::vec3 cameraTarget = rocketShip.GetObjectWorldPosition();
-			cameraTarget += (rocketShip.Forward() * 5.0f);
+			cameraTarget += (rocketShip.Forward() * 2.0f);
 
 			glm::vec3 cameraDirection = glm::normalize(cameraPosition - cameraTarget);
 			glm::vec3 cameraRight = glm::normalize(glm::cross(rocketShip.Up(), cameraDirection));
 			glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
-
-			viewingMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
-			break;
-		case 1:
-			//cockpit view
-			cameraPosition = rocketShip.GetObjectWorldPosition();
-			cameraPosition += (rocketShip.Up() * 0.08f);
-			cameraPosition += (rocketShip.Forward() * 0.09f);
-
-			cameraTarget = rocketShip.GetObjectWorldPosition();
-			cameraTarget += (rocketShip.Forward() * 2.0f);
-
-			cameraDirection = glm::normalize(cameraPosition - cameraTarget);
-			cameraRight = glm::normalize(glm::cross(rocketShip.Up(), cameraDirection));
-			cameraUp = glm::cross(cameraDirection, cameraRight);
-
 			viewingMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
 			
 			break;
 		default:
 			//Looking down at sun POV
-			viewingMatrix = glm::lookAt(glm::vec3(0.0, 500.0f, 0.0), glm::vec3(0.0, -50.0f, 0.0), glm::vec3(0, 0.0, 1.0));
+			//viewingMatrix = glm::lookAt(glm::vec3(0.0, 500.0f, 0.0), glm::vec3(0.0, -50.0f, 0.0), glm::vec3(0, 0.0, 1.0));
+			viewingMatrix = mainCamera.GetViewMatrix();
 	}
 
 	//Player rendering
@@ -184,6 +180,60 @@ void init()
 	Bodies[2].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[2].init("Models/Bodies/Moon/Moon.obj", glm::vec3(130.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 	Bodies[2].SetOrbit(1, 0.01f, 30.0f);
+
+	//Setup Camera
+	mainCamera.SetCameraView(glm::vec3(120.0f, 0.0, 30.0f), rocketShip.GetObjectWorldPosition(), glm::vec3(0.0, 1.0, 0.0));
+}
+
+void UpdateCamera()
+{
+	glm::vec3 focusPosition;
+
+	switch (CameraIndex)
+	{
+	case 0:
+		//Set min & max zoom boundaries and focus to player
+		minZoom = rocketShip.GetColliderSphereRadius() * 1.5;
+		maxZoom = rocketShip.GetColliderSphereRadius() * 15;	
+		focusPosition = rocketShip.GetObjectWorldPosition();
+		break;
+	case 2:
+		//Set min & max zoom boundaries and focus to star
+		minZoom = Bodies[0].GetColliderSphereRadius() * 5;
+		maxZoom = Bodies[0].GetColliderSphereRadius() * 30;
+		focusPosition = Bodies[0].GetObjectWorldPosition();
+		break;
+	}
+
+	//Check zoom is within boundaries
+	if (zoom < minZoom)
+	{
+		zoom = minZoom;
+	}
+	else if (zoom > maxZoom)
+	{
+		zoom = maxZoom;
+	}
+
+	//Get camera and pivot positions
+	glm::vec4 pivot = glm::vec4(focusPosition, 1.0);
+	glm::vec4 position = glm::vec4(focusPosition - (mainCamera.GetViewDir() * zoom), 1.0f);
+
+	//Calculate rotation amount
+	float deltaX = (2 * PI / screenWidth); //Left -> right = 360
+	float deltaY = (PI / screenHeight); //Top -> bottom = 180
+	float yawIncrement = (lastMouse_x - mouse_x) * deltaX;
+	float pitchIncrement = (lastMouse_y - mouse_y) * deltaY;
+	glm::quat cameraYaw = glm::angleAxis(yawIncrement, mainCamera.GetUpVector());
+	glm::quat cameraPitch = glm::angleAxis(pitchIncrement, mainCamera.GetRightVector());
+
+	glm::quat cameraOrientation = cameraYaw * cameraPitch;
+	position = (glm::toMat4(cameraOrientation) * (position - pivot)) + pivot;
+
+	mainCamera.SetCameraView(position, pivot, glm::vec3(0.0, 1.0, 0.0));
+
+	lastMouse_x = mouse_x;
+	lastMouse_y = mouse_y;
 }
 
 void UpdateOrbits()
@@ -223,7 +273,7 @@ void ApplyGravity()
 	float m2 = Bodies[closestPlanetIndex].GetColliderSphereRadius();
 
 	float strength = G * ((m1 * m2) / (nearest * nearest));
-	rocketShip.Move(attractDirection, strength);
+	rocketShip.Move(attractDirection, strength * deltaTime);
 	
 }
 
@@ -318,7 +368,7 @@ void specialUp(int key, int x, int y)
 
 void KeyDown(unsigned char key, int x, int y)
 {
-	switch (key)
+	switch (std::tolower(key))
 	{
 		case 'w':
 			Pitch = -1.0f;
@@ -381,10 +431,47 @@ void processKeys()
 	}
 }
 
+void updateMousePos(int x, int y)
+{
+	if (MiddlePressed)
+	{
+		mouse_x = x;
+		mouse_y = y;
+	}
+}
+
+void mouseInput(int button, int state, int x, int y)
+{
+	switch (button)
+	{
+	case GLUT_MIDDLE_BUTTON:
+		if (state == GLUT_DOWN)
+		{
+			lastMouse_x = x;
+			lastMouse_y = y;
+			mouse_x = x;
+			mouse_y = y;
+			MiddlePressed = true;
+		}
+		else
+			MiddlePressed = false;
+	}
+}
+
+void ScrollWheel(int wheel, int dir, int x, int y)
+{
+	dir = -dir;
+	float zoomInc = minZoom * 0.5;
+	if (zoom + (dir * zoomInc) > minZoom && zoom + (dir * zoomInc) < maxZoom)
+	{
+		zoom += (dir * zoomInc);
+	}
+}
 void idle()
 {
 	PhysicsSimulation();
 	processKeys();
+	UpdateCamera();
 	glutPostRedisplay();
 }
 /**************** END OPENGL FUNCTIONS *************************/
@@ -424,6 +511,10 @@ int main(int argc, char **argv)
 	glutKeyboardFunc(KeyDown);
 	glutKeyboardUpFunc(KeyUp);
 
+	//Handle mouse input 
+	glutMotionFunc(updateMousePos);
+	glutMouseFunc(mouseInput);
+	glutMouseWheelFunc(ScrollWheel);
 	glutIdleFunc(idle);
 
 	//starts the main loop. Program loops and calls callback functions as appropriate.
