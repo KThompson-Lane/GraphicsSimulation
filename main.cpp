@@ -416,16 +416,13 @@ void UpdateCamera()
 	//Calculate rotation amount
 	float deltaX = (2 * PI / screenWidth); //Left -> right = 360
 	float deltaY = (PI / screenHeight); //Top -> bottom = 180
-	float xRotation = (lastMouse_x - mouse_x) * deltaX;
-	float yRotation = (lastMouse_y - mouse_y) * deltaY;
+	float yawIncrement = (lastMouse_x - mouse_x) * deltaX;
+	float pitchIncrement = (lastMouse_y - mouse_y) * deltaY;
+	glm::quat cameraYaw = glm::angleAxis(yawIncrement, mainCamera.GetUpVector());
+	glm::quat cameraPitch = glm::angleAxis(pitchIncrement, mainCamera.GetRightVector());
 
-	glm::mat4 rotationMatrixX(1.0f);
-	rotationMatrixX = glm::rotate(rotationMatrixX, xRotation, glm::vec3(0.0, 1.0, 0.0));
-	position = (rotationMatrixX * (position - pivot)) + pivot;
-
-	glm::mat4 rotationMatrixY(1.0f);
-	rotationMatrixY = glm::rotate(rotationMatrixY, yRotation, glm::vec3(1.0, 0.0, 0.0));
-	position = (rotationMatrixY * (position - pivot)) + pivot;
+	glm::quat cameraOrientation = cameraYaw * cameraPitch;
+	position = (glm::toMat4(cameraOrientation) * (position - pivot)) + pivot;
 	
 
 	mainCamera.SetCameraView(position, pivot, glm::vec3(0.0, 1.0, 0.0));
