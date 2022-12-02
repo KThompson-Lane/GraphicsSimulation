@@ -26,12 +26,18 @@ static const float G = 0.00069420f;
 Player rocketShip = Player();
 
 vector<CelestialBody> Bodies;
-vector<PointLight> lights;
-SpotLight playerSpot;
-///END MODEL LOADING
-
 //Lighting
 #include "Light/Light.h"
+vector<PointLight> lights;
+SpotLight playerSpot;
+
+//Camera
+#include "Camera/Camera.h"
+Camera mainCamera;
+int lastMouse_x = 0, lastMouse_y = 0;
+
+///END MODEL LOADING
+
 
 CShader boundShader;
 
@@ -39,7 +45,7 @@ glm::mat4 ProjectionMatrix; // matrix for the orthographic projection
 
 //	User Input
 int	mouse_x=0, mouse_y=0;
-bool LeftPressed = false;
+bool MiddlePressed = false;
 int screenWidth = 600, screenHeight = 600;
 bool SwitchCamera = false;
 float Throttle;
@@ -103,7 +109,10 @@ void display()
 			break;
 		default:
 			//Looking down at sun POV
-			viewingMatrix = glm::lookAt(glm::vec3(0.0, 500.0f, 0.0), glm::vec3(0.0, -50.0f, 0.0), glm::vec3(0, 0.0, 1.0));
+			//viewingMatrix = glm::lookAt(glm::vec3(0.0, 500.0f, 0.0), glm::vec3(0.0, -50.0f, 0.0), glm::vec3(0, 0.0, 1.0));
+			
+			//TEST CODE TO USE CAMERA
+			viewingMatrix = mainCamera.GetViewMatrix();
 	}
 
 	//Player rendering
@@ -184,6 +193,9 @@ void init()
 	Bodies[2].setupShader("BasicView", "glslfiles/basicTransformations.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[2].init("Models/Bodies/Moon/Moon.obj", glm::vec3(130.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 	Bodies[2].SetOrbit(1, 0.01f, 30.0f);
+
+	//Setup Camera
+	mainCamera.SetCameraView(glm::vec3(120.0f, 0.0, 30.0f), rocketShip.GetObjectWorldPosition(), glm::vec3(0.0, 1.0, 0.0));
 }
 
 void UpdateOrbits()
@@ -381,10 +393,60 @@ void processKeys()
 	}
 }
 
+void updateMousePos(int x, int y)
+{
+	if (MiddlePressed)
+	{
+		mouse_x = x;
+		mouse_y = y;
+		std::cout << "Mouse X: " << mouse_x << std::endl;
+		std::cout << "Mouse Y: " << mouse_y << std::endl;
+	}
+}
+
+void mouseInput(int button, int state, int x, int y)
+{
+	switch (button)
+	{
+	case GLUT_MIDDLE_BUTTON:
+		if (state == GLUT_DOWN)
+			MiddlePressed = true;
+		else
+			MiddlePressed = false;
+	}
+}
+void UpdateCamera() 
+{
+	//TEST CODE TO USE CAMERA
+	//Get camera and pivot positions
+	glm::vec4 pivot(rocketShip.GetObjectWorldPosition(), 1.0);
+	//glm::vec4 position(mainCamera.GetEye(), 1.0);
+	glm::vec4 position(rocketShip.GetObjectWorldPosition() - (mainCamera.GetViewDir() * 10.5f), 1.0f);
+
+	//Calculate rotation amount
+	float deltaX = (2 * PI / screenWidth); //Left -> right = 360
+	float deltaY = (PI / screenWidth); //Top -> bottom = 180
+	float xRotation = (lastMouse_x - mouse_x) * deltaX;
+	float yRotation = (lastMouse_y - mouse_y) * deltaY;
+
+	glm::mat4 rotationMatrixX(1.0f);
+	rotationMatrixX = glm::rotate(rotationMatrixX, xRotation, glm::vec3(0.0, 1.0, 0.0));
+	position = (rotationMatrixX * (position - pivot)) + pivot;
+
+	glm::mat4 rotationMatrixY(1.0f);
+	rotationMatrixY = glm::rotate(rotationMatrixY, yRotation, glm::vec3(1.0, 0.0, 0.0));
+	glm::vec3 finalPosition = (rotationMatrixY * (position - pivot)) + pivot;
+
+	mainCamera.SetCameraView(finalPosition, pivot, glm::vec3(0.0, 1.0, 0.0));
+
+	lastMouse_x = mouse_x;
+	lastMouse_y = mouse_y;
+}
 void idle()
 {
 	PhysicsSimulation();
 	processKeys();
+	UpdateCamera();
 	glutPostRedisplay();
 }
 /**************** END OPENGL FUNCTIONS *************************/
@@ -424,6 +486,9 @@ int main(int argc, char **argv)
 	glutKeyboardFunc(KeyDown);
 	glutKeyboardUpFunc(KeyUp);
 
+	//Handle mouse input 
+	glutMotionFunc(updateMousePos);
+	glutMouseFunc(mouseInput);
 	glutIdleFunc(idle);
 
 	//starts the main loop. Program loops and calls callback functions as appropriate.
