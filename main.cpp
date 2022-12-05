@@ -350,8 +350,9 @@ void PlayerMovement()
 
 	rocketShip.UpdatePosition(deltaTime);
 
-	//Finally update ship light to match new position
+	//Finally update ship light position and direction to match ship
 	playerSpot.position = rocketShip.GetObjectWorldPosition() + (rocketShip.Up() * -0.15f);
+	playerSpot.direction = rocketShip.Forward();
 }
 
 void PhysicsSimulation() 
