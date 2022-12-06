@@ -97,6 +97,12 @@ void display()
 			viewingMatrix = mainCamera.GetViewMatrix();
 	}
 
+	//Before rendering update playerSpot position;
+	glm::mat4 lightMat = glm::translate(glm::mat4(1.0), rocketShip.GetObjectWorldPosition());
+	lightMat *= glm::toMat4(rocketShip.GetObjectRotation());
+	playerSpot.position = viewingMatrix * lightMat[3];
+	playerSpot.direction = glm::normalize(viewingMatrix * lightMat[2]);
+
 	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders, lights, playerSpot);
 
 	//Render planets
@@ -148,14 +154,10 @@ void init()
 	playerSpot.ambient = { 0.8, 0.8, 0.8 };
 	playerSpot.diffuse = { 0.8, 0.8, 0.8 };
 	playerSpot.specular = glm::vec3(1.0);
-	playerSpot.position = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	playerSpot.constant = 1.0f;
 	playerSpot.linear = 0.35;
 	playerSpot.quadratic = 0.44;
-
-	playerSpot.position = rocketShip.GetObjectWorldPosition() + (rocketShip.Up() * 0.15f);
-	playerSpot.direction = rocketShip.Forward();
 	playerSpot.cutOff = 12.5f;
 
 	//Create star
@@ -361,10 +363,6 @@ void PlayerMovement()
 	}
 
 	rocketShip.UpdatePosition(deltaTime);
-
-	//Finally update ship light position and direction to match ship
-	playerSpot.position = rocketShip.GetObjectWorldPosition() + (rocketShip.Up() * -0.15f);
-	playerSpot.direction = rocketShip.Forward();
 }
 
 void PhysicsSimulation() 

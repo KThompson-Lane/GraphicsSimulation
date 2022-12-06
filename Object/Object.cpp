@@ -105,9 +105,7 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool 
 		glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), (lightArrayString + ".quadratic").c_str()), lights[i].quadratic);
 	}
 
-	lightEyePos = viewingMatrix * glm::vec4(playerSpotLight.position, 1);
-	glm::vec3 spotlightDirectionEye = viewingMatrix * glm::vec4(playerSpotLight.direction, 1);
-	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.position"), lightEyePos.x, lightEyePos.y, lightEyePos.z);
+	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.position"), playerSpotLight.position.x, playerSpotLight.position.y, playerSpotLight.position.z);
 
 	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.ambient"), playerSpotLight.ambient.x, playerSpotLight.ambient.y, playerSpotLight.ambient.z);
 	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.diffuse"), playerSpotLight.diffuse.x, playerSpotLight.diffuse.y, playerSpotLight.diffuse.z);
@@ -117,7 +115,7 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool 
 	glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.linear"), playerSpotLight.linear);
 	glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.quadratic"), playerSpotLight.quadratic);
 
-	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.direction"), spotlightDirectionEye.x, spotlightDirectionEye.y, spotlightDirectionEye.z);
+	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.direction"), playerSpotLight.direction.x, playerSpotLight.direction.y, playerSpotLight.direction.z);
 	glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.cutOff"), glm::cos(glm::radians(playerSpotLight.cutOff)));
 
 	glUniform1i(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.enabled"), playerSpotLight.active);

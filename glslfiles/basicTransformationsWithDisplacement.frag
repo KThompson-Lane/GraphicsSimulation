@@ -79,9 +79,35 @@ vec3 PhongPointLightCalc(PointLight light, vec3 normal, vec3 ex_PositionEye, vec
         return (ambient + diffuse + specular + emission);
 }
 
+vec3 SpotLightCalc()
+{
+    //direction from light to fragment
+    vec3 lightDir = normalize(ex_PositionEye - spotLight.position);
+    float theta = dot(lightDir, normalize(spotLight.direction));
+    if(theta > spotLight.cutOff)
+    {
+        vec3 normal = normalize(ex_Normal);
+        vec3 fragDir = normalize(spotLight.position - ex_PositionEye);
+        float diff = max(dot(normal, fragDir), 0.0);
+        float dist    = length(spotLight.position - ex_PositionEye);
+        float attenuation =  min(1.0 / (spotLight.constant +
+                                    spotLight.linear * dist +
+                                    spotLight.quadratic * dist * dist)
+                                    ,1);
+        vec3 ambient  = spotLight.ambient * vec3(texture(material.diffuse, ex_TexCoord));
+        vec3 diffuse  = spotLight.diffuse * vec3(texture(material.diffuse, ex_TexCoord));
+        ambient *= attenuation;
+        diffuse *= attenuation;
+        return ambient + diffuse;
+    }
+    else
+    {
+        return vec3(0.0);
+    }
+}
+
 void main(void)
 {
-
 	//Calculate lighting
 	vec3 color;
 
@@ -98,24 +124,9 @@ void main(void)
     //Add spotlight calculation
     if(spotLight.enabled)
     {
-        vec3 lightDir = normalize(spotLight.position - ex_PositionEye);
-        float theta = dot(lightDir, normalize(spotLight.direction));
-        if(theta > spotLight.cutOff)
-        {
-            PointLight spotAsPoint;
-            spotAsPoint.position = spotLight.position;
-
-            spotAsPoint.ambient = spotLight.ambient;
-            spotAsPoint.diffuse = spotLight.diffuse;
-            spotAsPoint.specular = spotLight.specular;
-
-            spotAsPoint.constant = spotLight.constant;
-            spotAsPoint.linear =  spotLight.linear;
-            spotAsPoint.quadratic = spotLight.quadratic;
-
-            color += PhongPointLightCalc(spotAsPoint, normalize(ex_Normal), ex_PositionEye, normalize(glm::vec3(0) - ex_PositionEye));
-        }
+        color += SpotLightCalc();
     }
+    
     out_Color = vec4(color, 1.0);
 }
 
