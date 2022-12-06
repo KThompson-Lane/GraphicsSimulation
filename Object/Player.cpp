@@ -5,6 +5,7 @@ void Player::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool 
 	glDisable(GL_CULL_FACE);
 	Object::render(viewingMatrix, ProjectionMatrix, showCollider, lights, playerSpotLight);
 	glEnable(GL_CULL_FACE);
+	collider.DrawCollider(boundingShader);
 }
 
 float Player::GetSpeed()
@@ -65,4 +66,10 @@ void Player::Reset(glm::vec3 resetPosition)
 	velocity = glm::vec3(0.0f);
 	landedObject = nullptr;
 	landed = false;
+}
+
+void Player::CreateCollider()
+{
+	collider = SphereCollider(this->model.CalcBoundingSphere(), glm::vec3(0.0, 0.0, 0.0));
+	collider.CreateGeometry(this->boundingShader);
 }

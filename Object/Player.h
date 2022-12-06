@@ -1,5 +1,7 @@
 #pragma once
 #include "Object.h"
+#include "../Collider/SphereCollider.h"
+
 class Player : public Object
 {
 	//private members
@@ -11,6 +13,7 @@ private:
 
 	Object* landedObject = nullptr;
 	glm::vec3 landingPosition;
+	SphereCollider collider;
 	//public members
 public:
 	bool landed = false;
@@ -28,6 +31,7 @@ public:
 	void TakeOff();
 	void Crash();
 	void Reset(glm::vec3 resetPosition);
+	void CreateCollider();
 	glm::vec3 GetVelocity() const { return velocity; }
 };
 

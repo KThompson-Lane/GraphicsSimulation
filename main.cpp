@@ -179,6 +179,9 @@ void init()
 
 	//Setup Camera
 	mainCamera.SetCameraView(glm::vec3(120.0f, 0.0, 30.0f), rocketShip.GetObjectWorldPosition(), glm::vec3(0.0, 1.0, 0.0));
+
+	//TEST COLLIDER CODE
+	rocketShip.CreateCollider();
 }
 
 void UpdateCamera()

@@ -21,12 +21,12 @@ class Object
 //private members
 private:
 	CShader objectShader;
-	CShader boundingShader;
 	char* modelFile;
 	COBJLoader objectLoader;
 	glm::mat4 ModelViewMatrix;  // matrix for the modelling and viewing
 	Sphere boundingSphere;
 protected:
+	CShader boundingShader;
 	glm::mat4 objectModelMatrix;
 	glm::vec3 objectPosition;
 	glm::quat objectRotation;
