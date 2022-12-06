@@ -27,6 +27,7 @@ public:
 	void Land(glm::vec3 landingPosition, Object& landingObject);
 	void TakeOff();
 	void Crash();
+	void Reset(glm::vec3 resetPosition);
 	glm::vec3 GetVelocity() const { return velocity; }
 };
 

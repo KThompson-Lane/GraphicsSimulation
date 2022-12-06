@@ -56,3 +56,13 @@ void Player::Crash()
 {
 	this->amount += glm::length(velocity) * 10;
 }
+
+void Player::Reset(glm::vec3 resetPosition)
+{
+	objectPosition = resetPosition;
+	objectRotation = glm::quat(1.0, 0.0, 0.0, 0.0);
+	amount = 0.0f;
+	velocity = glm::vec3(0.0f);
+	landedObject = nullptr;
+	landed = false;
+}

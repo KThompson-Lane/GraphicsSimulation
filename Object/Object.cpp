@@ -105,8 +105,7 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool 
 		glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), (lightArrayString + ".quadratic").c_str()), lights[i].quadratic);
 	}
 
-	lightEyePos = viewingMatrix * glm::vec4(playerSpotLight.position, 1);
-	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.position"), lightEyePos.x, lightEyePos.y, lightEyePos.z);
+	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.position"), playerSpotLight.position.x, playerSpotLight.position.y, playerSpotLight.position.z);
 
 	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.ambient"), playerSpotLight.ambient.x, playerSpotLight.ambient.y, playerSpotLight.ambient.z);
 	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.diffuse"), playerSpotLight.diffuse.x, playerSpotLight.diffuse.y, playerSpotLight.diffuse.z);

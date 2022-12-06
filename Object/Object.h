@@ -51,5 +51,6 @@ public:
 	glm::vec3 Up();
 	glm::vec3 Forward();
 	float GetColliderSphereRadius();
+	glm::quat GetObjectRotation() const { return objectRotation; }
 };
 
