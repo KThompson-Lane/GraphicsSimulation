@@ -36,7 +36,7 @@
     <ClCompile Include="Object\Player.cpp" />
     <ClCompile Include="sphere\Sphere.cpp" />
     <ClCompile Include="Camera\Camera.cpp" />
-    <ClCompile Include="Collider\SphereCollider.cpp" />
+    <ClCompile Include="Colliders\SphereCollider.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3dStruct\threeDModel.h">
@@ -75,8 +75,7 @@
     <ClInclude Include="sphere\Sphere.h" />
     <ClInclude Include="Light\Light.h" />
     <ClInclude Include="Camera\Camera.h" />
-    <ClInclude Include="Collider\Collider.h" />
-    <ClInclude Include="Collider\SphereCollider.h" />
+    <ClInclude Include="Colliders\Colliders.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="headers">

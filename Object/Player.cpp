@@ -5,7 +5,6 @@ void Player::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool 
 	glDisable(GL_CULL_FACE);
 	Object::render(viewingMatrix, ProjectionMatrix, showCollider, lights, playerSpotLight);
 	glEnable(GL_CULL_FACE);
-	collider.DrawCollider(boundingShader);
 }
 
 float Player::GetSpeed()
@@ -68,8 +67,20 @@ void Player::Reset(glm::vec3 resetPosition)
 	landed = false;
 }
 
-void Player::CreateCollider()
+bool Player::CheckCollision(Object& other)
 {
-	collider = SphereCollider(this->model.CalcBoundingSphere(), glm::vec3(0.0, 0.0, 0.0));
-	collider.CreateGeometry(this->boundingShader);
+	if (Object::CheckCollision(other))
+	{
+		//In collision, need response
+		float dist = distance(other.GetObjectWorldPosition(), this->objectPosition);
+		glm::vec3 repulseDirection = normalize(objectPosition - other.GetObjectWorldPosition());
+
+		float P = collider->CalculatePenetration(other.collider, dist);
+
+		Move(repulseDirection, P);
+		//Land on body
+		Land(repulseDirection * P, other);
+		return true;
+	}
+	else return false;
 }

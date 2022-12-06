@@ -1,4 +1,4 @@
-#include "SphereCollider.h"
+#include "Colliders.h"
 
 #define level 16
 #define PI 3.14159265358979323846f
@@ -101,15 +101,57 @@ void SphereCollider::CreateGeometry(CShader& shader)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void SphereCollider::DrawCollider(CShader& shader)
+void SphereCollider::DrawCollider(CShader& shader, glm::mat4& mvm, glm::mat4& projMat)
 {
+	glDisable(GL_CULL_FACE);
+
+	//Use the bounding shader
+	glUseProgram(shader.GetProgramObjID());
+	GLuint projMatLocation = glGetUniformLocation(shader.GetProgramObjID(), "ProjectionMatrix");
+	glUniformMatrix4fv(projMatLocation, 1, GL_FALSE, &projMat[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(shader.GetProgramObjID(), "ModelViewMatrix"), 1, GL_FALSE, &mvm[0][0]);
+	
 	//draw objects
 	glBindVertexArray(m_vaoID);		// select VAO
-
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	glDrawElements(GL_TRIANGLES, numOfTris * 3, GL_UNSIGNED_INT, 0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	// Done	
+
 	glBindVertexArray(0); //unbind the vertex array object
+	glEnable(GL_CULL_FACE);
+
+}
+
+bool SphereCollider::InCollision(SphereCollider* othercol, float distance)
+{
+	float colliderRadi = othercol->GetRadius() + radius;
+	return distance <= colliderRadi;
+}
+
+bool SphereCollider::InCollision(Collider* othercol, float distance)
+{
+	SphereCollider* otherCollider = dynamic_cast<SphereCollider*>(othercol);
+	if (otherCollider != NULL)
+	{
+		return this->InCollision(otherCollider, distance);
+	}
+}
+
+float SphereCollider::CalculatePenetration(SphereCollider* othercol, float distance)
+{
+	float Rp = distance - radius;
+	float Rc = distance - othercol->GetRadius();
+	float P = distance - (Rp + Rc);
+	return P;
+}
+
+float SphereCollider::CalculatePenetration(Collider* othercol, float distance)
+{
+	SphereCollider* otherCollider = dynamic_cast<SphereCollider*>(othercol);
+	if (otherCollider != NULL)
+	{
+		return this->CalculatePenetration(otherCollider, distance);
+	}
 }

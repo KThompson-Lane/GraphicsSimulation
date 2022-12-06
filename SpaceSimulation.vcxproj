@@ -22,8 +22,7 @@
     <ClInclude Include="3dStruct\threeDModel.h" />
     <ClInclude Include="Box\Box.h" />
     <ClInclude Include="Camera\Camera.h" />
-    <ClInclude Include="Collider\Collider.h" />
-    <ClInclude Include="Collider\SphereCollider.h" />
+    <ClInclude Include="Colliders\Colliders.h" />
     <ClInclude Include="Images\FreeImage.h" />
     <ClInclude Include="Images\ImageLoading.h" />
     <ClInclude Include="Light\Light.h" />
@@ -42,7 +41,7 @@
     <ClCompile Include="3dStruct\threeDModel.cpp" />
     <ClCompile Include="Box\Box.cpp" />
     <ClCompile Include="Camera\Camera.cpp" />
-    <ClCompile Include="Collider\SphereCollider.cpp" />
+    <ClCompile Include="Colliders\SphereCollider.cpp" />
     <ClCompile Include="Images\ImageLoading.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Object\Object.cpp" />

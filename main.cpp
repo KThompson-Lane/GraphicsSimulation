@@ -16,7 +16,6 @@ using namespace std;
 
 #include "Images\FreeImage.h"
 
-
 //objects
 #include "Object/Object.h"
 #include "Object/Player.h"
@@ -146,6 +145,7 @@ void init()
 	//Player setup
 	rocketShip.setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	rocketShip.init("Models/Ship/Ship.obj");
+	rocketShip.AddSphereCollider();
 	rocketShip.Move(glm::vec3(1.0, 0.0, 0.0), 120);
 	rocketShip.Move(glm::vec3(0.0, 0.0, 1.0), 20);
 	rocketShip.Rotate(0.0, 225.0f ,0.0);
@@ -164,24 +164,23 @@ void init()
 	Bodies.push_back(CelestialBody(0));
 	Bodies[0].setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[0].init("Models/Bodies/Star/Star.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-
+	Bodies[0].AddSphereCollider();
 	//Create Delmar
 	Bodies.push_back(CelestialBody(1));
 	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[1].init("Models/Bodies/Delmar/Delmar.obj", glm::vec3(100.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	Bodies[1].AddSphereCollider();
 	Bodies[1].SetOrbit(0, 0.0003f, 100.0f);
 
 	//Create moon
     Bodies.push_back(CelestialBody(2));
 	Bodies[2].setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[2].init("Models/Bodies/Moon/Moon.obj", glm::vec3(130.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	Bodies[2].AddSphereCollider();
 	Bodies[2].SetOrbit(1, 0.003f, 30.0f);
 
 	//Setup Camera
 	mainCamera.SetCameraView(glm::vec3(120.0f, 0.0, 30.0f), rocketShip.GetObjectWorldPosition(), glm::vec3(0.0, 1.0, 0.0));
-
-	//TEST COLLIDER CODE
-	rocketShip.CreateCollider();
 }
 
 void UpdateCamera()
@@ -300,12 +299,9 @@ void CheckCollisions()
 
 	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
 	{
-		glm::vec3 planetPosition = it->GetObjectWorldPosition();
-		float playerDistance = distance(planetPosition, playerPosition);
-		float colliderRadi = it->GetColliderSphereRadius() + rocketShip.GetColliderSphereRadius();
-		if (playerDistance <= colliderRadi)
+		if (rocketShip.CheckCollision(*it))
 		{
-			glm::vec3 repulseDirection = normalize(playerPosition - planetPosition);
+			glm::vec3 repulseDirection = normalize(playerPosition - it->GetObjectWorldPosition());
 			//Check if player safely landed
 			if (!destroyed)
 			{
@@ -331,13 +327,6 @@ void CheckCollisions()
 					DestroyPlayer();
 				}
 			}
-			float Rp = playerDistance - rocketShip.GetColliderSphereRadius();
-			float Rc = playerDistance - it->GetColliderSphereRadius();
-			float P = playerDistance - (Rp + Rc);
-
-			rocketShip.Move(repulseDirection, P);
-			//Land on body
-			rocketShip.Land(repulseDirection * P, *it);
 			focusedBodyIndex = it->index;
 			rocketShip.AddForce(-(rocketShip.GetVelocity()));
 		}
