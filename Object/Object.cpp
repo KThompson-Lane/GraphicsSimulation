@@ -46,7 +46,7 @@ void Object::setupShader(char* shaderName, char* vertPath, char* fragPath)
 void Object::AddSphereCollider()
 {
 	float radius = model.CalcBoundingSphere();
-	collider = new SphereCollider(radius, glm::vec3(0.0));
+	collider = new SphereCollider(radius, this->transform);
 	collider->CreateGeometry(boundingShader);
 }
 
@@ -55,7 +55,7 @@ void Object::AddBoxCollider()
 	float x, y, z;
 	model.CalcOBB(x, y, z);
 	glm::vec3 colliderSize = glm::vec3(x, y, z);
-	collider = new BoxCollider(colliderSize, glm::vec3(0.0));
+	collider = new BoxCollider(colliderSize, this->transform);
 	collider->CreateGeometry(boundingShader);
 }
 //End Collider helper methods
@@ -140,6 +140,5 @@ float Object::GetColliderSphereRadius()
 
 bool Object::CheckCollision(Object& other)
 {
-	float dist = distance(other.transform->position, transform->position);
-	return collider->InCollision(other.collider, dist);
+	return collider->InCollision(other.collider);
 }

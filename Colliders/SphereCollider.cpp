@@ -3,20 +3,10 @@
 #define level 16
 #define PI 3.14159265358979323846f
 
-SphereCollider::SphereCollider()
-{
-	centre = glm::vec3(0.0);
-	radius = 0.0f;
-}
-
-SphereCollider::SphereCollider(float r, glm::vec3 centre)
-{
-	this->centre = centre;
-	radius = r;
-}
-
 void SphereCollider::CreateGeometry(CShader& shader)
 {
+	
+	glm::vec3 centre = glm::vec3(0.0, 0.0, 0.0);
 	//create the memory for the sphere
 	verts = new float[((level - 2) * level + 2) * 3];
 	tInds = new unsigned int[(((level - 3) * (level - 1) + (level - 1)) * 2) * 3];
@@ -124,34 +114,36 @@ void SphereCollider::DrawCollider(CShader& shader, glm::mat4& mvm, glm::mat4& pr
 
 }
 
-bool SphereCollider::InCollision(SphereCollider* othercol, float distance)
+bool SphereCollider::InCollision(SphereCollider* othercol)
 {
 	float colliderRadi = othercol->GetRadius() + radius;
-	return distance <= colliderRadi;
+	float dist = distance(othercol->transform->position, transform->position);
+	return dist <= colliderRadi;
 }
 
-bool SphereCollider::InCollision(Collider* othercol, float distance)
+bool SphereCollider::InCollision(Collider* othercol)
 {
 	SphereCollider* otherCollider = dynamic_cast<SphereCollider*>(othercol);
 	if (otherCollider != NULL)
 	{
-		return this->InCollision(otherCollider, distance);
+		return this->InCollision(otherCollider);
 	}
 }
 
-float SphereCollider::CalculatePenetration(SphereCollider* othercol, float distance)
+float SphereCollider::CalculatePenetration(SphereCollider* othercol)
 {
-	float Rp = distance - radius;
-	float Rc = distance - othercol->GetRadius();
-	float P = distance - (Rp + Rc);
+	float dist = distance(othercol->transform->position, transform->position);
+	float Rp = dist - radius;
+	float Rc = dist - othercol->GetRadius();
+	float P = dist - (Rp + Rc);
 	return P;
 }
 
-float SphereCollider::CalculatePenetration(Collider* othercol, float distance)
+float SphereCollider::CalculatePenetration(Collider* othercol)
 {
 	SphereCollider* otherCollider = dynamic_cast<SphereCollider*>(othercol);
 	if (otherCollider != NULL)
 	{
-		return this->CalculatePenetration(otherCollider, distance);
+		return this->CalculatePenetration(otherCollider);
 	}
 }

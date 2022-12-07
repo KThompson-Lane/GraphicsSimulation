@@ -1,20 +1,5 @@
 #include "Colliders.h"
 
-BoxCollider::BoxCollider()
-{
-	centre = glm::vec3(0.0);
-	halfSize = glm::vec3(0.0);
-	xAxis = glm::vec3(1.0, 0.0, 0.0);
-	yAxis = glm::vec3(0.0, 1.0, 0.0);
-	zAxis = glm::vec3(0.0, 0.0, 1.0);
-}
-
-BoxCollider::BoxCollider(glm::vec3 halfSize, glm::vec3 centre)
-{
-	this->centre = centre;
-	this->halfSize = halfSize;
-}
-
 void BoxCollider::CreateGeometry(CShader& shader)
 {
 	//create the memory for the sphere
@@ -94,5 +79,5 @@ void BoxCollider::DrawCollider(CShader& shader, glm::mat4& mvm, glm::mat4& projM
 	glEnable(GL_CULL_FACE);
 }
 
-bool BoxCollider::InCollision(Collider* otherCol, float distance) { return false; }
-float BoxCollider::CalculatePenetration(Collider* otherCol, float distance) { return 0.0; }
+bool BoxCollider::InCollision(Collider* otherCol) { return false; }
+float BoxCollider::CalculatePenetration(Collider* otherCol) { return 0.0; }

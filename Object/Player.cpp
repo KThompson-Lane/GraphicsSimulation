@@ -74,10 +74,9 @@ bool Player::CheckCollision(Object& other)
 	if (Object::CheckCollision(other))
 	{
 		//In collision, need response
-		float dist = distance(other.transform->position, this->transform->position);
 		glm::vec3 repulseDirection = normalize(transform->position - other.transform->position);
 
-		float P = collider->CalculatePenetration(other.collider, dist);
+		float P = collider->CalculatePenetration(other.collider);
 		transform->Move(repulseDirection, P);
 
 		//This shouldn't be needed but is 
