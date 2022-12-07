@@ -132,11 +132,10 @@ bool SphereCollider::InCollision(Collider* othercol)
 
 float SphereCollider::CalculatePenetration(SphereCollider* othercol)
 {
-	float dist = distance(othercol->transform->position, transform->position);
-	float Rp = dist - radius;
-	float Rc = dist - othercol->GetRadius();
-	float P = dist - (Rp + Rc);
-	return P;
+	glm::vec3 difference = othercol->transform->position - transform->position;
+	
+	float amount = glm::length(difference) - (radius + othercol->GetRadius());
+	return amount;
 }
 
 float SphereCollider::CalculatePenetration(Collider* othercol)

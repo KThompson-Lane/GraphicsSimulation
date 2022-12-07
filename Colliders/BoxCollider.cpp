@@ -79,5 +79,39 @@ void BoxCollider::DrawCollider(CShader& shader, glm::mat4& mvm, glm::mat4& projM
 	glEnable(GL_CULL_FACE);
 }
 
-bool BoxCollider::InCollision(Collider* otherCol) { return false; }
-float BoxCollider::CalculatePenetration(Collider* otherCol) { return 0.0; }
+bool BoxCollider::InCollision(SphereCollider* otherCol)
+{
+	//First inverse transform other collider position into local space
+	glm::vec3 localSphereCentre = glm::inverse(transform->ModelMatrix) * glm::vec4(otherCol->transform->position, 1.0);
+	glm::vec3 clamped = glm::clamp(localSphereCentre, -halfSize, halfSize);
+	glm::vec3 closest = transform->position + clamped;
+	glm::vec3 difference = otherCol->transform->position - closest;
+	return glm::length(difference) < otherCol->GetRadius();
+}
+
+bool BoxCollider::InCollision(Collider* otherCol) 
+{
+	SphereCollider* otherCollider = dynamic_cast<SphereCollider*>(otherCol);
+	if (otherCollider != NULL)
+	{
+		return this->InCollision(otherCollider);
+	}
+}
+
+float BoxCollider::CalculatePenetration(SphereCollider* otherCol)
+{
+	glm::vec3 localSphereCentre = glm::inverse(transform->ModelMatrix) * glm::vec4(otherCol->transform->position, 1.0);
+	glm::vec3 clamped = glm::clamp(localSphereCentre, -halfSize, halfSize);
+	glm::vec3 closest = transform->position + clamped;
+	glm::vec3 difference = closest - otherCol->transform->position;
+	return (otherCol->GetRadius() - glm::length(difference));
+}
+
+float BoxCollider::CalculatePenetration(Collider* otherCol)
+{
+	SphereCollider* otherCollider = dynamic_cast<SphereCollider*>(otherCol);
+	if (otherCollider != NULL)
+	{
+		return this->CalculatePenetration(otherCollider);
+	}
+}

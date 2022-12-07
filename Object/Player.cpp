@@ -60,9 +60,9 @@ void Player::Crash()
 
 void Player::Reset(glm::vec3 resetPosition)
 {
+	transform->Reset();
+	transform->Move(resetPosition);
 	destroyed = false;
-	//transform.Reset();
-	//transform.Move(resetPosition);
 	amount = 0.0f;
 	velocity = glm::vec3(0.0f);
 	landedObject = nullptr;
@@ -74,10 +74,10 @@ bool Player::CheckCollision(Object& other)
 	if (Object::CheckCollision(other))
 	{
 		//In collision, need response
-		glm::vec3 repulseDirection = normalize(transform->position - other.transform->position);
+		glm::vec3 direction = normalize(transform->position - other.transform->position);
 
-		float P = collider->CalculatePenetration(other.collider);
-		transform->Move(repulseDirection, P);
+		float penAmount= collider->CalculatePenetration(other.collider);
+		transform->Move(direction, penAmount);
 
 		//This shouldn't be needed but is 
 		if (destroyed)
@@ -85,13 +85,14 @@ bool Player::CheckCollision(Object& other)
 			return false;
 		}
 		//Check crash conditions
-		if (other.tag == "star" || glm::length(velocity) > 0.5f || distance(glm::normalize(transform->Up()), repulseDirection) > 0.5f)
+		//
+		if (other.tag == "star" || glm::length(velocity) > 0.5f || distance(glm::normalize(transform->Up()), direction) > 0.5f)
 		{
 			Crash();
 			velocity = glm::vec3(0.0f);
 		}
 		//Land on body
-		Land(repulseDirection * P, other);
+		Land(direction*penAmount, other);
 		return true;
 	}
 	else return false;

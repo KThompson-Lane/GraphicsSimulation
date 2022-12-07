@@ -33,3 +33,10 @@ void Transform::Rotate(float pitchIn, float yawIn, float rollIn)
 	m_rotation = (pitch * yaw * roll * m_rotation);
 	UpdateModelMatrix();
 }
+
+void Transform::Reset()
+{
+	m_position = glm::vec3(0.0);
+	m_rotation = glm::quat(1.0, 0.0, 0.0, 0.0);
+	m_ModelMatrix = glm::mat4(1.0);
+}

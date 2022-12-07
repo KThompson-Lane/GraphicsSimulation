@@ -321,7 +321,7 @@ void PhysicsSimulation()
 	UpdateOrbits();
 	ApplyGravity();
 	PlayerMovement();
-	//CheckCollisions();
+	CheckCollisions();
 }
 
 void special(int key, int x, int y)

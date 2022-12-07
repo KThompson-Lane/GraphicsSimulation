@@ -16,12 +16,12 @@ protected:
 	unsigned int m_vaoID;		    // vertex array object
 	unsigned int m_vboID;			// VBO for vertex data
 	GLuint ibo;                     //identifier for the triangle indices
-
 	int numOfVerts;
 	int numOfTris;
-	Transform* transform;
 	float* verts;
 	unsigned int* tInds;
+public:
+	Transform* transform;
 };
 
 //Sphere collider class
@@ -44,8 +44,8 @@ class BoxCollider : public Collider {
 private:
 	glm::vec3 halfSize; //Vectors OBB
 private:
-	bool InCollision(SphereCollider* otherCol, float distance);
-	float CalculatePenetration(SphereCollider* otherCol, float distance);
+	bool InCollision(SphereCollider* otherCol);
+	float CalculatePenetration(SphereCollider* otherCol);
 public:
 	BoxCollider(glm::vec3 halfSize, Transform* transform) : halfSize(halfSize), Collider(transform) { }
 	void CreateGeometry(CShader& shader);
