@@ -1,10 +1,5 @@
 #include "CelestialBody.h"
 
-CelestialBody::CelestialBody(int index)
-{
-	this->index = index;
-}
-
 void CelestialBody::init(char* modelFile, glm::vec3 position, glm::vec3 rotation)
 {
 	Object::init(modelFile);
@@ -42,4 +37,10 @@ void CelestialBody::UpdateOrbit(glm::vec3 orbitBodyPosition, float deltaTime)
 	objectPosition.x = orbitMatrix[3][0];
 	objectPosition.y = orbitMatrix[3][1];
 	objectPosition.z = orbitMatrix[3][2];
+}
+std::pair<float, float> CelestialBody::GetMinMaxZoom()
+{
+	float minZoom = GetColliderSphereRadius() * 5;
+	float maxZoom = GetColliderSphereRadius() * 30;
+	return std::make_pair(minZoom, maxZoom);
 }

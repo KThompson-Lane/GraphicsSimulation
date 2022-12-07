@@ -15,11 +15,13 @@ private:
 	//public members
 public:
 	bool landed = false;
+	bool destroyed = false;
 	//private functions
 private:
 
 	//public functions
 public:
+	Player() : Object("player") {}
 	void render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, std::vector<PointLight>& lights, SpotLight& playerSpotLight);
 	float GetSpeed();
 	float GetRotationSpeed();
@@ -31,5 +33,6 @@ public:
 	void Reset(glm::vec3 resetPosition);
 	bool CheckCollision(Object& other);
 	glm::vec3 GetVelocity() const { return velocity; }
+	std::pair<float, float> GetMinMaxZoom();
 };
 

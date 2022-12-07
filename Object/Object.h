@@ -35,16 +35,17 @@ protected:
 public:
 	CThreeDModel model;
 	Collider* collider = nullptr;
+	const std::string tag;
 //private functions
 private:
 
 //public functions
 public:
+	Object(std::string tag) : tag(tag) {}
 	void init(char* modelFile);
 	void setupShader(char*, char*, char*);
 	void AddSphereCollider();
 	void AddBoxCollider();
-
 	void render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, std::vector<PointLight>& lights, SpotLight& playerSpotLight);
 	void Move(glm::vec3 direction, float amount);
 	void Rotate(float pitchIn, float yawIn, float rollIn);
@@ -55,5 +56,6 @@ public:
 	bool CheckCollision(Object& other);
 	glm::vec3 GetObjectWorldPosition() const { return objectPosition; }
 	glm::quat GetObjectRotation() const { return objectRotation; }
+	virtual std::pair<float, float> GetMinMaxZoom() = 0;
 };
 

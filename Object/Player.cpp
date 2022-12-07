@@ -55,10 +55,12 @@ void Player::TakeOff()
 void Player::Crash()
 {
 	this->amount += glm::length(velocity) * 10;
+	destroyed = true;
 }
 
 void Player::Reset(glm::vec3 resetPosition)
 {
+	destroyed = false;
 	objectPosition = resetPosition;
 	objectRotation = glm::quat(1.0, 0.0, 0.0, 0.0);
 	amount = 0.0f;
@@ -76,11 +78,29 @@ bool Player::CheckCollision(Object& other)
 		glm::vec3 repulseDirection = normalize(objectPosition - other.GetObjectWorldPosition());
 
 		float P = collider->CalculatePenetration(other.collider, dist);
-
 		Move(repulseDirection, P);
+
+		//This shouldn't be needed but is 
+		if (destroyed)
+		{
+			return false;
+		}
+		//Check crash conditions
+		if (other.tag == "star" || glm::length(velocity) > 0.5f || distance(glm::normalize(Up()), repulseDirection) > 0.5f)
+		{
+			Crash();
+			velocity = glm::vec3(0.0f);
+		}
 		//Land on body
 		Land(repulseDirection * P, other);
 		return true;
 	}
 	else return false;
+}
+
+std::pair<float, float> Player::GetMinMaxZoom()
+{
+	float minZoom = GetColliderSphereRadius() * 1.5;
+	float maxZoom = GetColliderSphereRadius() * 15;
+	return std::make_pair(minZoom, maxZoom);
 }
