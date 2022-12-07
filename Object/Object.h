@@ -9,9 +9,7 @@
 #include "../3dStruct/threeDModel.h"
 #include "../Colliders/Colliders.h"
 
-//Angry 4thDimensional spinning noises
-#include "../glm/gtc/quaternion.hpp"
-#include "../glm/gtx/quaternion.hpp"
+#include "../Transform/Transform.h"
 
 //Lighting
 #include "../Light/Light.h"
@@ -23,17 +21,15 @@ private:
 	CShader objectShader;
 	char* modelFile;
 	COBJLoader objectLoader;
-	glm::mat4 ModelViewMatrix;  // matrix for the modelling and viewing
+	glm::mat4 ModelViewMatrix = glm::mat4(1.0);  // matrix for the modelling and viewing
 //protected members
 protected:
 	CShader boundingShader;
-	glm::mat4 objectModelMatrix;
-	glm::vec3 objectPosition;
-	glm::quat objectRotation;
 	float amount = 0.0f;
 //public members
 public:
 	CThreeDModel model;
+	Transform* transform = nullptr;
 	Collider* collider = nullptr;
 	const std::string tag;
 //private functions
@@ -41,21 +37,14 @@ private:
 
 //public functions
 public:
-	Object(std::string tag) : tag(tag) {}
+	Object(std::string tag) : tag(tag) { }
 	void init(char* modelFile);
 	void setupShader(char*, char*, char*);
 	void AddSphereCollider();
 	void AddBoxCollider();
 	void render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, std::vector<PointLight>& lights, SpotLight& playerSpotLight);
-	void Move(glm::vec3 direction, float amount);
-	void Rotate(float pitchIn, float yawIn, float rollIn);
-	glm::vec3 Side();
-	glm::vec3 Up();
-	glm::vec3 Forward();
 	float GetColliderSphereRadius();
 	bool CheckCollision(Object& other);
-	glm::vec3 GetObjectWorldPosition() const { return objectPosition; }
-	glm::quat GetObjectRotation() const { return objectRotation; }
 	virtual std::pair<float, float> GetMinMaxZoom() = 0;
 };
 

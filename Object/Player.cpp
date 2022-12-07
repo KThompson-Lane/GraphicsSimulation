@@ -30,11 +30,11 @@ void Player::UpdatePosition(float deltaTime)
 {
 	if (landed && landedObject != nullptr)
 	{
-		objectPosition = landedObject->GetObjectWorldPosition() + landingPosition;
+		transform->Move(landedObject->transform->position + landingPosition);
 	}
 	else 
 	{
-		objectPosition += velocity * deltaTime;
+		transform->Move(velocity, deltaTime);
 	}
 }
 
@@ -61,8 +61,8 @@ void Player::Crash()
 void Player::Reset(glm::vec3 resetPosition)
 {
 	destroyed = false;
-	objectPosition = resetPosition;
-	objectRotation = glm::quat(1.0, 0.0, 0.0, 0.0);
+	//transform.Reset();
+	//transform.Move(resetPosition);
 	amount = 0.0f;
 	velocity = glm::vec3(0.0f);
 	landedObject = nullptr;
@@ -74,11 +74,11 @@ bool Player::CheckCollision(Object& other)
 	if (Object::CheckCollision(other))
 	{
 		//In collision, need response
-		float dist = distance(other.GetObjectWorldPosition(), this->objectPosition);
-		glm::vec3 repulseDirection = normalize(objectPosition - other.GetObjectWorldPosition());
+		float dist = distance(other.transform->position, this->transform->position);
+		glm::vec3 repulseDirection = normalize(transform->position - other.transform->position);
 
 		float P = collider->CalculatePenetration(other.collider, dist);
-		Move(repulseDirection, P);
+		transform->Move(repulseDirection, P);
 
 		//This shouldn't be needed but is 
 		if (destroyed)
@@ -86,7 +86,7 @@ bool Player::CheckCollision(Object& other)
 			return false;
 		}
 		//Check crash conditions
-		if (other.tag == "star" || glm::length(velocity) > 0.5f || distance(glm::normalize(Up()), repulseDirection) > 0.5f)
+		if (other.tag == "star" || glm::length(velocity) > 0.5f || distance(glm::normalize(transform->Up()), repulseDirection) > 0.5f)
 		{
 			Crash();
 			velocity = glm::vec3(0.0f);

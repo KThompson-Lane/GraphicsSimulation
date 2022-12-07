@@ -35,12 +35,14 @@
     <ClInclude Include="sphere\Sphere.h" />
     <ClInclude Include="Structures\Vector3d.h" />
     <ClInclude Include="TextureHandler\TextureHandler.h" />
+    <ClInclude Include="Transform\Transform.h" />
     <ClInclude Include="Utilities\IntersectionTests.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3dStruct\threeDModel.cpp" />
     <ClCompile Include="Box\Box.cpp" />
     <ClCompile Include="Camera\Camera.cpp" />
+    <ClCompile Include="Colliders\BoxCollider.cpp" />
     <ClCompile Include="Colliders\SphereCollider.cpp" />
     <ClCompile Include="Images\ImageLoading.cpp" />
     <ClCompile Include="main.cpp" />
@@ -53,6 +55,7 @@
     <ClCompile Include="sphere\Sphere.cpp" />
     <ClCompile Include="Structures\Vector3d.cpp" />
     <ClCompile Include="TextureHandler\TextureHandler.cpp" />
+    <ClCompile Include="Transform\Transform.cpp" />
     <ClCompile Include="Utilities\IntersectionTests.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -2,6 +2,7 @@
 
 void Object::init(char* modelFile)
 {
+	transform = new Transform();
 	std::cout << " loading model " << std::endl;
 	if (objectLoader.LoadModel(modelFile))//returns true if the model is loaded
 	{
@@ -28,10 +29,6 @@ void Object::init(char* modelFile)
 	{
 		std::cout << " model failed to load " << std::endl;
 	}
-
-	//Set object model matrix and rotation to identity
-	objectModelMatrix = glm::mat4(1.0);
-	objectRotation = glm::quat(1.0, 0.0, 0.0, 0.0);
 }
 
 void Object::setupShader(char* shaderName, char* vertPath, char* fragPath)
@@ -45,12 +42,23 @@ void Object::setupShader(char* shaderName, char* vertPath, char* fragPath)
 	glEnable(GL_TEXTURE_2D);
 }
 
+//Begin Collider helper methods
 void Object::AddSphereCollider()
 {
 	float radius = model.CalcBoundingSphere();
 	collider = new SphereCollider(radius, glm::vec3(0.0));
 	collider->CreateGeometry(boundingShader);
 }
+
+void Object::AddBoxCollider()
+{
+	float x, y, z;
+	model.CalcOBB(x, y, z);
+	glm::vec3 colliderSize = glm::vec3(x, y, z);
+	collider = new BoxCollider(colliderSize, glm::vec3(0.0));
+	collider->CreateGeometry(boundingShader);
+}
+//End Collider helper methods
 
 void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, std::vector<PointLight>& lights, SpotLight& playerSpotLight)
 {
@@ -105,10 +113,7 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool 
 	glUniform1i(glGetUniformLocation(objectShader.GetProgramObjID(), "spotLight.enabled"), playerSpotLight.active);
 	
 	//Set the modelview matrix in the shader
-	objectModelMatrix = glm::translate(glm::mat4(1.0), objectPosition);
-	objectModelMatrix *= glm::toMat4(objectRotation);
-
-	ModelViewMatrix = viewingMatrix * objectModelMatrix;
+	ModelViewMatrix = viewingMatrix * transform->ModelMatrix;
 	glUniformMatrix4fv(glGetUniformLocation(objectShader.GetProgramObjID(), "ModelViewMatrix"), 1, GL_FALSE, &ModelViewMatrix[0][0]);
 
 	//Set the normal matrix in the shader
@@ -128,36 +133,6 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool 
 	glUseProgram(0);
 }
 
-void Object::Move(glm::vec3 direction, float amount)
-{
-	objectPosition += (direction * amount);
-}
-
-void Object::Rotate(float pitchIn, float yawIn, float rollIn)
-{
-	glm::quat pitch = glm::angleAxis(glm::radians(pitchIn), Side());
-	glm::quat yaw = glm::angleAxis(glm::radians(yawIn), Up());
-	glm::quat roll = glm::angleAxis(glm::radians(rollIn), Forward());
-	objectRotation = (pitch * yaw * roll * objectRotation);
-}
-glm::vec3 Object::Side()
-{
-	//Retrieves the Side direction
-	return glm::normalize(glm::vec3(objectModelMatrix[0][0], objectModelMatrix[0][1], objectModelMatrix[0][2]));
-}
-
-glm::vec3 Object::Up()
-{
-	//Retrieves the up direction
-	return glm::normalize(glm::vec3(objectModelMatrix[1][0], objectModelMatrix[1][1], objectModelMatrix[1][2]));
-}
-
-glm::vec3 Object::Forward()
-{
-	//Retrieves the Forward direction
-	return glm::normalize(glm::vec3(objectModelMatrix[2][0], objectModelMatrix[2][1], objectModelMatrix[2][2]));
-}
-
 float Object::GetColliderSphereRadius()
 {
 	return model.CalcBoundingSphere();
@@ -165,6 +140,6 @@ float Object::GetColliderSphereRadius()
 
 bool Object::CheckCollision(Object& other)
 {
-	float dist = distance(other.GetObjectWorldPosition(), this->objectPosition);
+	float dist = distance(other.transform->position, transform->position);
 	return collider->InCollision(other.collider, dist);
 }

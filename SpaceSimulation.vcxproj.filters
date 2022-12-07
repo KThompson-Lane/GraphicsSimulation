@@ -37,6 +37,8 @@
     <ClCompile Include="sphere\Sphere.cpp" />
     <ClCompile Include="Camera\Camera.cpp" />
     <ClCompile Include="Colliders\SphereCollider.cpp" />
+    <ClCompile Include="Colliders\BoxCollider.cpp" />
+    <ClCompile Include="Transform\Transform.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3dStruct\threeDModel.h">
@@ -76,6 +78,7 @@
     <ClInclude Include="Light\Light.h" />
     <ClInclude Include="Camera\Camera.h" />
     <ClInclude Include="Colliders\Colliders.h" />
+    <ClInclude Include="Transform\Transform.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="headers">
