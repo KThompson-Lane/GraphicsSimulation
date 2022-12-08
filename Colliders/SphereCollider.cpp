@@ -130,15 +130,15 @@ bool SphereCollider::InCollision(Collider* othercol)
 	}
 }
 
-float SphereCollider::CalculatePenetration(SphereCollider* othercol)
+glm::vec3 SphereCollider::CalculatePenetration(SphereCollider* othercol)
 {
-	glm::vec3 difference = othercol->transform->position - transform->position;
+	glm::vec3 difference = transform->position - othercol->transform->position;
 	
 	float amount = glm::length(difference) - (radius + othercol->GetRadius());
-	return amount;
+	return glm::normalize(difference) * amount;
 }
 
-float SphereCollider::CalculatePenetration(Collider* othercol)
+glm::vec3 SphereCollider::CalculatePenetration(Collider* othercol)
 {
 	SphereCollider* otherCollider = dynamic_cast<SphereCollider*>(othercol);
 	if (otherCollider != NULL)

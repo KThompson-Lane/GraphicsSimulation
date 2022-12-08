@@ -73,11 +73,12 @@ bool Player::CheckCollision(Object& other)
 {
 	if (Object::CheckCollision(other))
 	{
-		//In collision, need response
-		glm::vec3 direction = normalize(transform->position - other.transform->position);
 
-		float penAmount= collider->CalculatePenetration(other.collider);
-		transform->Move(direction, penAmount);
+		glm::vec3 direction = normalize(transform->position - other.transform->position);
+		//In collision, need response
+		glm::vec3 translation = collider->CalculatePenetration(other.collider);
+
+		transform->Move(direction, glm::length(translation));
 
 		//This shouldn't be needed but is 
 		if (destroyed)
@@ -92,7 +93,7 @@ bool Player::CheckCollision(Object& other)
 			velocity = glm::vec3(0.0f);
 		}
 		//Land on body
-		Land(direction*penAmount, other);
+		Land(direction * glm::length(translation), other);
 		return true;
 	}
 	else return false;
