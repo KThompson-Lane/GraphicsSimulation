@@ -246,7 +246,7 @@ void ApplyGravity()
 	glm::vec3 playerPosition = rocketShip.transform->position;
 
 	//Apply gravity to nearest celestial body
-	float nearest = 1000.0f;
+	float nearest = distance(Bodies[0].transform->position, playerPosition);
 	int closestPlanetIndex = 0;
 	int currentPlanet = 0;
 	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
@@ -274,7 +274,7 @@ void CheckCollisions()
 {
 	//Check for collisions
 
-	if (!rocketShip.landed)
+	if (!rocketShip.landed && !rocketShip.destroyed)
 	{
 		for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
 		{
@@ -289,7 +289,6 @@ void CheckCollisions()
 			}
 		}
 	}
-	
 }
 
 void PlayerMovement()
@@ -304,13 +303,12 @@ void PlayerMovement()
 
 		rocketShip.AddForce(rocketShip.transform->Forward() * (Throttle * rocketShip.GetSpeed()));
 		//Replace 0.0003f with a const value for vertical acceleration force;
-		rocketShip.AddForce(rocketShip.transform->Up() * (VerticleThrottle * 0.00003f));
+		rocketShip.AddForce(rocketShip.transform->Up() * (VerticleThrottle * 0.00008f));
 	}
 	else if (VerticleThrottle == 1.0f && !rocketShip.destroyed)
 	{
 		rocketShip.TakeOff();
 		focusedObject = &rocketShip;
-		rocketShip.AddForce(rocketShip.transform->Up() * (VerticleThrottle * 0.003f));
 	}
 
 	rocketShip.UpdatePosition(deltaTime);
@@ -321,8 +319,11 @@ void PhysicsSimulation()
 	float currentTime = glutGet(GLUT_ELAPSED_TIME);
 	deltaTime = currentTime - lastFrameTime;
 	lastFrameTime = currentTime;
+	
+	//std::cout << "Player orientation: " << rocketShip.transform->rotation.x << " " << rocketShip.transform->rotation.y << " " << rocketShip.transform->rotation.z << " " << rocketShip.transform->rotation.w << std::endl;
 	UpdateOrbits();
-	ApplyGravity();
+	if(!rocketShip.landed)
+		ApplyGravity();
 	PlayerMovement();
 	CheckCollisions();
 }

@@ -48,6 +48,13 @@ void Player::Land(glm::vec3 landingPos, Object& landingObject)
 
 void Player::TakeOff()
 {
+	velocity = glm::vec3(0.0f);
+	//First make sure we're on the correct position on the body
+	transform->Move(landedObject->transform->position + landingPosition);
+	//Then move up slightly to prevent any collision mishaps
+	transform->Move(transform->Up(), 0.1f);
+	//Finally add a small force in the up direction vector
+	AddForce(transform->Up() * 0.00008f);
 	landed = false;
 	landedObject = nullptr;
 }
@@ -77,16 +84,9 @@ bool Player::CheckCollision(Object& other)
 		glm::vec3 direction = normalize(transform->position - other.transform->position);
 
 		glm::vec3 translation = collider->CalculatePenetration(other.collider);
-		glm::vec3 upTest = transform->Up();
 		transform->Move(translation);
 
-		//This shouldn't be needed but is 
-		if (destroyed)
-		{
-			return false;
-		}
-
-		if (other.tag == "star" || glm::length(velocity) > 0.5f || distance2(upTest, direction) > 0.5f)
+		if (other.tag == "star" || glm::length(velocity) > 0.5f || distance(transform->Up(), direction) > 0.5f)
 		{
 			Crash();
 			velocity = glm::vec3(0.0f);
