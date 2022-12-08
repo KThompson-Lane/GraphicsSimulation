@@ -461,6 +461,44 @@ void CThreeDModel::CalcBoundingBox(double& minX, double& minY, double& minZ, dou
 			maxZ = z;
 	}
 }
+
+void CThreeDModel::CalcOBB(float& xSize, float& ySize, float& zSize)
+{
+	float maxX, maxY, maxZ;
+	maxX = m_pvVertices[0].x;
+	maxY = m_pvVertices[0].y;
+	maxZ = m_pvVertices[0].z;
+	double x, y, z;
+	for (int i = 1; i < m_iNumberOfVertices; i++)
+	{
+		x = m_pvVertices[i].x;
+		y = m_pvVertices[i].y;
+		z = m_pvVertices[i].z;
+
+		if (x < 0)
+		{
+			x = -x;
+		}
+		if (y < 0)
+		{
+			y = -y;
+		}
+		if (z < 0)
+		{
+			z = -z;
+		}
+		if (x > maxX)
+			maxX = x;
+		if (y > maxY)
+			maxY = y;
+		if (z > maxZ)
+			maxZ = z;
+	}
+	xSize = maxX;
+	ySize = maxY;
+	zSize = maxZ;
+}
+
 double CThreeDModel::CalcBoundingSphere()
 {
 	double maxRadius{};

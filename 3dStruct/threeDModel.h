@@ -84,6 +84,7 @@ public:
 	bool						IsVertexIntersectingAABB(double min[DIMENSION_IN_3D], double max[DIMENSION_IN_3D], int VertIndex);
 	void						CalcBoundingBox(double& minX, double& minY, double& minZ, double& maxX, double& maxY, double& maxZ);
 	double						CalcBoundingSphere();
+	void						CalcOBB(float& xSize, float& ySize, float& zSize);
 
 };
 

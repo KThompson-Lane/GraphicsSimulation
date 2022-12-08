@@ -30,11 +30,11 @@ void Player::UpdatePosition(float deltaTime)
 {
 	if (landed && landedObject != nullptr)
 	{
-		objectPosition = landedObject->GetObjectWorldPosition() + landingPosition;
+		transform->Move(landedObject->transform->position + landingPosition);
 	}
 	else 
 	{
-		objectPosition += velocity * deltaTime;
+		transform->Move(velocity, deltaTime);
 	}
 }
 
@@ -55,14 +55,52 @@ void Player::TakeOff()
 void Player::Crash()
 {
 	this->amount += glm::length(velocity) * 10;
+	destroyed = true;
 }
 
 void Player::Reset(glm::vec3 resetPosition)
 {
-	objectPosition = resetPosition;
-	objectRotation = glm::quat(1.0, 0.0, 0.0, 0.0);
+	transform->Reset();
+	transform->Move(resetPosition);
+	destroyed = false;
 	amount = 0.0f;
 	velocity = glm::vec3(0.0f);
 	landedObject = nullptr;
 	landed = false;
+}
+
+bool Player::CheckCollision(Object& other)
+{
+	if (Object::CheckCollision(other))
+	{
+		//In collision, need response
+		glm::vec3 direction = normalize(transform->position - other.transform->position);
+
+		float penAmount= collider->CalculatePenetration(other.collider);
+		transform->Move(direction, penAmount);
+
+		//This shouldn't be needed but is 
+		if (destroyed)
+		{
+			return false;
+		}
+		//Check crash conditions
+		//
+		if (other.tag == "star" || glm::length(velocity) > 0.5f || distance(glm::normalize(transform->Up()), direction) > 0.5f)
+		{
+			Crash();
+			velocity = glm::vec3(0.0f);
+		}
+		//Land on body
+		Land(direction*penAmount, other);
+		return true;
+	}
+	else return false;
+}
+
+std::pair<float, float> Player::GetMinMaxZoom()
+{
+	float minZoom = GetColliderSphereRadius() * 1.5;
+	float maxZoom = GetColliderSphereRadius() * 15;
+	return std::make_pair(minZoom, maxZoom);
 }

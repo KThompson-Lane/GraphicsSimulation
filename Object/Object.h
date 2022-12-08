@@ -7,11 +7,9 @@
 #include "../glm/gtc/matrix_transform.hpp"
 #include "../glm/gtc/matrix_inverse.hpp"
 #include "../3dStruct/threeDModel.h"
-#include "../sphere/Sphere.h"
+#include "../Colliders/Colliders.h"
 
-//Angry 4thDimensional spinning noises
-#include "../glm/gtc/quaternion.hpp"
-#include "../glm/gtx/quaternion.hpp"
+#include "../Transform/Transform.h"
 
 //Lighting
 #include "../Light/Light.h"
@@ -21,36 +19,32 @@ class Object
 //private members
 private:
 	CShader objectShader;
-	CShader boundingShader;
 	char* modelFile;
 	COBJLoader objectLoader;
-	glm::mat4 ModelViewMatrix;  // matrix for the modelling and viewing
-	Sphere boundingSphere;
+	glm::mat4 ModelViewMatrix = glm::mat4(1.0);  // matrix for the modelling and viewing
+//protected members
 protected:
-	glm::mat4 objectModelMatrix;
-	glm::vec3 objectPosition;
-	glm::quat objectRotation;
+	CShader boundingShader;
 	float amount = 0.0f;
-
 //public members
 public:
 	CThreeDModel model;
+	Transform* transform = nullptr;
+	Collider* collider = nullptr;
+	const std::string tag;
 //private functions
 private:
 
 //public functions
 public:
+	Object(std::string tag) : tag(tag) { }
 	void init(char* modelFile);
 	void setupShader(char*, char*, char*);
-	//TODO: Change this to take in a collection of Light objects and iterate over them when rendering.
+	void AddSphereCollider();
+	void AddBoxCollider();
 	void render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, std::vector<PointLight>& lights, SpotLight& playerSpotLight);
-	void Move(glm::vec3 direction, float amount);
-	void Rotate(float pitchIn, float yawIn, float rollIn);
-	glm::vec3 GetObjectWorldPosition();
-	glm::vec3 Side();
-	glm::vec3 Up();
-	glm::vec3 Forward();
 	float GetColliderSphereRadius();
-	glm::quat GetObjectRotation() const { return objectRotation; }
+	bool CheckCollision(Object& other);
+	virtual std::pair<float, float> GetMinMaxZoom() = 0;
 };
 
