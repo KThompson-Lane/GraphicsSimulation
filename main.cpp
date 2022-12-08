@@ -188,6 +188,13 @@ void init()
 	Bodies[3].AddSphereCollider();
 	Bodies[3].SetOrbit(0, 0.0002f);
 
+	//Create Satellite
+	Bodies.push_back(CelestialBody(string("satellite")));
+	Bodies[4].setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
+	Bodies[4].init("Models/Bodies/Satellite/Satellite.obj", glm::vec3(-20.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	Bodies[4].AddSphereCollider();
+	Bodies[4].SetOrbit(3, 0.02f);
+
 	//Setup Camera
 	focusedObject = &rocketShip;
 	mainCamera.SetCameraView(glm::vec3(120.0f, 0.0, 30.0f), rocketShip.transform->position, glm::vec3(0.0, 1.0, 0.0));
