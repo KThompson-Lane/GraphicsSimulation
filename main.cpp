@@ -273,20 +273,23 @@ void ApplyGravity()
 void CheckCollisions()
 {
 	//Check for collisions
-	glm::vec3 playerPosition = rocketShip.transform->position;
 
-	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
+	if (!rocketShip.landed)
 	{
-		if (rocketShip.CheckCollision(*it))
+		for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
 		{
-			//If player collides set focused object to collision object
-			focusedObject = &(*it);
-			if (rocketShip.destroyed)
+			if (rocketShip.CheckCollision(*it))
 			{
-				DestroyPlayer();
+				//If player collides set focused object to collision object
+				focusedObject = &(*it);
+				if (rocketShip.destroyed)
+				{
+					DestroyPlayer();
+				}
 			}
 		}
 	}
+	
 }
 
 void PlayerMovement()

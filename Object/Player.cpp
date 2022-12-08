@@ -73,27 +73,28 @@ bool Player::CheckCollision(Object& other)
 {
 	if (Object::CheckCollision(other))
 	{
-
+		//Old code, keep in case needed
 		glm::vec3 direction = normalize(transform->position - other.transform->position);
-		//In collision, need response
-		glm::vec3 translation = collider->CalculatePenetration(other.collider);
 
-		transform->Move(direction, glm::length(translation));
+		glm::vec3 translation = collider->CalculatePenetration(other.collider);
+		glm::vec3 upTest = transform->Up();
+		transform->Move(translation);
 
 		//This shouldn't be needed but is 
 		if (destroyed)
 		{
 			return false;
 		}
-		//Check crash conditions
-		//
-		if (other.tag == "star" || glm::length(velocity) > 0.5f || distance(glm::normalize(transform->Up()), direction) > 0.5f)
+
+		if (other.tag == "star" || glm::length(velocity) > 0.5f || distance2(upTest, direction) > 0.5f)
 		{
 			Crash();
 			velocity = glm::vec3(0.0f);
 		}
+		//Test code
+		glm::vec3 landingPosition =  translation - other.transform->position;
 		//Land on body
-		Land(direction * glm::length(translation), other);
+		Land(landingPosition, other);
 		return true;
 	}
 	else return false;
