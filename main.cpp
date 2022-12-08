@@ -172,15 +172,21 @@ void init()
 	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[1].init("Models/Bodies/Delmar/Delmar.obj", glm::vec3(100.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 	Bodies[1].AddSphereCollider();
-	Bodies[1].SetOrbit(0, 0.0003f, 100.0f);
+	Bodies[1].SetOrbit(0, 0.0003f);
 
 	//Create moon
     Bodies.push_back(CelestialBody(string("moon")));
 	Bodies[2].setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
-	Bodies[2].init("Models/Bodies/Moon/Moon.obj", glm::vec3(130.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	Bodies[2].init("Models/Bodies/Moon/Moon.obj", glm::vec3(30.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 	Bodies[2].AddSphereCollider();
-	Bodies[2].SetOrbit(1, 0.003f, 30.0f);
+	Bodies[2].SetOrbit(1, 0.003f);
 	
+	//Create Orion
+	Bodies.push_back(CelestialBody(string("orion")));
+	Bodies[3].setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
+	Bodies[3].init("Models/Bodies/Orion/Orion.obj", glm::vec3(-110.0f, 0.0f, -60.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	Bodies[3].AddSphereCollider();
+	Bodies[3].SetOrbit(0, 0.0002f);
 
 	//Setup Camera
 	focusedObject = &rocketShip;
@@ -280,7 +286,8 @@ void CheckCollisions()
 		{
 			if (rocketShip.CheckCollision(*it))
 			{
-				//If player collides set focused object to collision object
+				//If player collides set focused object to collision object and set throttle to zero
+				Throttle = 0.0f;
 				focusedObject = &(*it);
 				if (rocketShip.destroyed)
 				{

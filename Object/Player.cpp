@@ -86,13 +86,18 @@ bool Player::CheckCollision(Object& other)
 		glm::vec3 translation = collider->CalculatePenetration(other.collider);
 		transform->Move(translation);
 
-		if (other.tag == "star" || glm::length(velocity) > 0.5f || distance(transform->Up(), direction) > 0.5f)
+		//Calculate landing position relative to planet centre, then check crash conditions
+		glm::vec3 landingPosition = translation - other.transform->position;
+
+		//Crash conditions:
+			//Collided object is star
+			//Player velocity is too high
+			//Landing angle is not optimal
+		if (other.tag == "star" || glm::length(velocity) > 0.35f || distance(transform->Up(), glm::normalize(landingPosition)) > 0.3f)
 		{
 			Crash();
 			velocity = glm::vec3(0.0f);
 		}
-		//Test code
-		glm::vec3 landingPosition =  translation - other.transform->position;
 		//Land on body
 		Land(landingPosition, other);
 		return true;
