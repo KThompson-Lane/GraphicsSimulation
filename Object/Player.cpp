@@ -48,6 +48,13 @@ void Player::Land(glm::vec3 landingPos, Object& landingObject)
 
 void Player::TakeOff()
 {
+	velocity = glm::vec3(0.0f);
+	//First make sure we're on the correct position on the body
+	transform->Move(landedObject->transform->position + landingPosition);
+	//Then move up slightly to prevent any collision mishaps
+	transform->Move(transform->Up(), 0.1f);
+	//Finally add a small force in the up direction vector
+	AddForce(transform->Up() * 0.00008f);
 	landed = false;
 	landedObject = nullptr;
 }
@@ -73,26 +80,26 @@ bool Player::CheckCollision(Object& other)
 {
 	if (Object::CheckCollision(other))
 	{
-		//In collision, need response
+		//Old code, keep in case needed
 		glm::vec3 direction = normalize(transform->position - other.transform->position);
 
-		float penAmount= collider->CalculatePenetration(other.collider);
-		transform->Move(direction, penAmount);
+		glm::vec3 translation = collider->CalculatePenetration(other.collider);
+		transform->Move(translation);
 
-		//This shouldn't be needed but is 
-		if (destroyed)
-		{
-			return false;
-		}
-		//Check crash conditions
-		//
-		if (other.tag == "star" || glm::length(velocity) > 0.5f || distance(glm::normalize(transform->Up()), direction) > 0.5f)
+		//Calculate landing position relative to planet centre, then check crash conditions
+		glm::vec3 landingPosition = translation - other.transform->position;
+
+		//Crash conditions:
+			//Collided object is star
+			//Player velocity is too high
+			//Landing angle is not optimal
+		if (other.tag == "star" || glm::length(velocity) > 0.35f || distance(transform->Up(), glm::normalize(landingPosition)) > 0.3f)
 		{
 			Crash();
 			velocity = glm::vec3(0.0f);
 		}
 		//Land on body
-		Land(direction*penAmount, other);
+		Land(landingPosition, other);
 		return true;
 	}
 	else return false;

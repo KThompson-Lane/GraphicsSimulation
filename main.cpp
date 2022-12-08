@@ -172,15 +172,28 @@ void init()
 	Bodies[1].setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
 	Bodies[1].init("Models/Bodies/Delmar/Delmar.obj", glm::vec3(100.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 	Bodies[1].AddSphereCollider();
-	Bodies[1].SetOrbit(0, 0.0003f, 100.0f);
+	Bodies[1].SetOrbit(0, 0.0003f);
 
 	//Create moon
     Bodies.push_back(CelestialBody(string("moon")));
 	Bodies[2].setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
-	Bodies[2].init("Models/Bodies/Moon/Moon.obj", glm::vec3(130.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	Bodies[2].init("Models/Bodies/Moon/Moon.obj", glm::vec3(30.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 	Bodies[2].AddSphereCollider();
-	Bodies[2].SetOrbit(1, 0.003f, 30.0f);
+	Bodies[2].SetOrbit(1, 0.003f);
 	
+	//Create Orion
+	Bodies.push_back(CelestialBody(string("orion")));
+	Bodies[3].setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
+	Bodies[3].init("Models/Bodies/Orion/Orion.obj", glm::vec3(-110.0f, 0.0f, -60.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	Bodies[3].AddSphereCollider();
+	Bodies[3].SetOrbit(0, 0.0002f);
+
+	//Create Satellite
+	Bodies.push_back(CelestialBody(string("satellite")));
+	Bodies[4].setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
+	Bodies[4].init("Models/Bodies/Satellite/Satellite.obj", glm::vec3(-20.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	Bodies[4].AddSphereCollider();
+	Bodies[4].SetOrbit(3, 0.02f);
 
 	//Setup Camera
 	focusedObject = &rocketShip;
@@ -246,7 +259,7 @@ void ApplyGravity()
 	glm::vec3 playerPosition = rocketShip.transform->position;
 
 	//Apply gravity to nearest celestial body
-	float nearest = 1000.0f;
+	float nearest = distance(Bodies[0].transform->position, playerPosition);
 	int closestPlanetIndex = 0;
 	int currentPlanet = 0;
 	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
@@ -273,17 +286,20 @@ void ApplyGravity()
 void CheckCollisions()
 {
 	//Check for collisions
-	glm::vec3 playerPosition = rocketShip.transform->position;
 
-	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
+	if (!rocketShip.landed && !rocketShip.destroyed)
 	{
-		if (rocketShip.CheckCollision(*it))
+		for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
 		{
-			//If player collides set focused object to collision object
-			focusedObject = &(*it);
-			if (rocketShip.destroyed)
+			if (rocketShip.CheckCollision(*it))
 			{
-				DestroyPlayer();
+				//If player collides set focused object to collision object and set throttle to zero
+				Throttle = 0.0f;
+				focusedObject = &(*it);
+				if (rocketShip.destroyed)
+				{
+					DestroyPlayer();
+				}
 			}
 		}
 	}
@@ -301,13 +317,12 @@ void PlayerMovement()
 
 		rocketShip.AddForce(rocketShip.transform->Forward() * (Throttle * rocketShip.GetSpeed()));
 		//Replace 0.0003f with a const value for vertical acceleration force;
-		rocketShip.AddForce(rocketShip.transform->Up() * (VerticleThrottle * 0.00003f));
+		rocketShip.AddForce(rocketShip.transform->Up() * (VerticleThrottle * 0.00008f));
 	}
 	else if (VerticleThrottle == 1.0f && !rocketShip.destroyed)
 	{
 		rocketShip.TakeOff();
 		focusedObject = &rocketShip;
-		rocketShip.AddForce(rocketShip.transform->Up() * (VerticleThrottle * 0.003f));
 	}
 
 	rocketShip.UpdatePosition(deltaTime);
@@ -318,8 +333,11 @@ void PhysicsSimulation()
 	float currentTime = glutGet(GLUT_ELAPSED_TIME);
 	deltaTime = currentTime - lastFrameTime;
 	lastFrameTime = currentTime;
+	
+	//std::cout << "Player orientation: " << rocketShip.transform->rotation.x << " " << rocketShip.transform->rotation.y << " " << rocketShip.transform->rotation.z << " " << rocketShip.transform->rotation.w << std::endl;
 	UpdateOrbits();
-	ApplyGravity();
+	if(!rocketShip.landed)
+		ApplyGravity();
 	PlayerMovement();
 	CheckCollisions();
 }

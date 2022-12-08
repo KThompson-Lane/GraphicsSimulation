@@ -5,12 +5,12 @@ class CelestialBody : public Object
 {
 	//private members
 private:
+	glm::vec3 initialPosition;
 	//public members
 public:
 	int orbitingBodyIndex = -1;
 	float radius;
 	float orbitalSpeed;
-	float orbitDistance;
 	float orbitAmount = 0.0f;
 	//private functions
 private:
@@ -19,7 +19,7 @@ private:
 public:
 	CelestialBody(std::string tag) : Object(tag) {}
 	void init(char* modelFile, glm::vec3 initialPosition, glm::vec3 initialRotation);
-	void SetOrbit(int orbitingBodyIndex, float speed, float distance);
+	void SetOrbit(int orbitingBodyIndex, float speed);
 	void UpdateOrbit(glm::vec3 orbitBodyPosition, float deltaTime);
 	std::pair<float, float> GetMinMaxZoom();
 };
