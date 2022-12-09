@@ -278,40 +278,70 @@ void UpdateOrbits()
 
 void ApplyGravity()
 {
-	glm::vec3 playerPosition = rocketShip.transform->position;
-
-	//Apply gravity to nearest celestial body
-	float nearest = distance(Bodies[0].transform->position, playerPosition);
-	int closestPlanetIndex = 0;
-	int currentPlanet = 0;
-	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
+	if (!rocketShip.landed)
 	{
-		float dist = distance(it->transform->position, playerPosition);
-		if (dist < nearest)
+		glm::vec3 playerPosition = rocketShip.transform->position;
+
+		//Apply gravity to nearest celestial body to the player
+		float nearest = distance(Bodies[0].transform->position, playerPosition);
+		int closestPlanetIndex = 0;
+		int currentPlanet = 0;
+		for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
 		{
-			nearest = dist;
-			closestPlanetIndex = currentPlanet;
+			float dist = distance(it->transform->position, playerPosition);
+			if (dist < nearest)
+			{
+				nearest = dist;
+				closestPlanetIndex = currentPlanet;
+			}
+			++currentPlanet;
 		}
-		++currentPlanet;
+		glm::vec3 planetPosition = Bodies[closestPlanetIndex].transform->position;
+
+		glm::vec3 attractDirection = normalize(planetPosition - playerPosition);
+		//calculate gravity strength
+		float m1 = rocketShip.GetMass();
+		float m2 = Bodies[closestPlanetIndex].GetMass();
+
+		float strength = G * ((m1 * m2) / (nearest * nearest));
+		rocketShip.AddForce(attractDirection * strength);
 	}
-	glm::vec3 planetPosition = Bodies[closestPlanetIndex].transform->position;
+	if (!satellite.inOrbit && !satellite.landed)
+	{
+		glm::vec3 satellitePosition = satellite.transform->position;
 
-	glm::vec3 attractDirection = normalize(planetPosition - playerPosition);
-	//calculate gravity strength
-	float m1 = rocketShip.GetMass();
-	float m2 = Bodies[closestPlanetIndex].GetMass();
+		//Apply gravity to nearest celestial body to the craft
+		float nearest = distance(Bodies[0].transform->position, satellitePosition);
+		int closestPlanetIndex = 0;
+		int currentPlanet = 0;
+		for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
+		{
+			float dist = distance(it->transform->position, satellitePosition);
+			if (dist < nearest)
+			{
+				nearest = dist;
+				closestPlanetIndex = currentPlanet;
+			}
+			++currentPlanet;
+		}
+		glm::vec3 planetPosition = Bodies[closestPlanetIndex].transform->position;
 
-	float strength = G * ((m1 * m2) / (nearest * nearest));
-	rocketShip.AddForce(attractDirection * strength);
+		glm::vec3 attractDirection = normalize(planetPosition - satellitePosition);
+		//calculate gravity strength
+		float m1 = satellite.GetMass();
+		float m2 = Bodies[closestPlanetIndex].GetMass();
+
+		float strength = G * ((m1 * m2) / (nearest * nearest));
+		satellite.AddForce(attractDirection * strength);
+	}
 }
 
 void CheckCollisions()
 {
 	//Check for collisions
-
-	if (!rocketShip.landed)
+	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
 	{
-		for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
+		if (!rocketShip.landed)
 		{
 			if (rocketShip.CheckCollision(*it))
 			{
@@ -324,19 +354,23 @@ void CheckCollisions()
 				}
 			}
 		}
-		if (satellite.inOrbit)
+		if (!satellite.inOrbit && !satellite.landed)
 		{
-			//Store ship velocity prior to collision check 
-			glm::vec3 impactVelocity = rocketShip.GetVelocity();
-			if (rocketShip.CheckCollision(satellite))
+			satellite.CheckCollision(*it);
+		}
+	}
+	if (satellite.inOrbit)
+	{
+		//Store ship velocity prior to collision check 
+		glm::vec3 impactVelocity = rocketShip.GetVelocity();
+		if (rocketShip.CheckCollision(satellite))
+		{
+			satellite.CollideWithPlayer(impactVelocity);
+			Throttle = 0.0f;
+			focusedObject = &rocketShip;
+			if (rocketShip.destroyed)
 			{
-				satellite.CollideWithPlayer(impactVelocity);
-				Throttle = 0.0f;
-				focusedObject = &rocketShip;
-				if (rocketShip.destroyed)
-				{
-					DestroyPlayer();
-				}
+				DestroyPlayer();
 			}
 		}
 	}
@@ -371,10 +405,8 @@ void PhysicsSimulation()
 	deltaTime = currentTime - lastFrameTime;
 	lastFrameTime = currentTime;
 	
-	//std::cout << "Player orientation: " << rocketShip.transform->rotation.x << " " << rocketShip.transform->rotation.y << " " << rocketShip.transform->rotation.z << " " << rocketShip.transform->rotation.w << std::endl;
 	UpdateOrbits();
-	if(!rocketShip.landed)
-		ApplyGravity();
+	ApplyGravity();
 	PlayerMovement();
 	CheckCollisions();
 }
