@@ -21,10 +21,8 @@ using namespace std;
 #include "Object/Player.h"
 #include "Object/CelestialBody.h"
 
-static const float G = 0.00069420f;
+static const double G = 0.0000069420f;
 Player rocketShip = Player();
-CelestialBody body = CelestialBody("test");
-
 vector<CelestialBody> Bodies;
 //Lighting
 #include "Light/Light.h"
@@ -198,6 +196,14 @@ void init()
 	//Setup Camera
 	focusedObject = &rocketShip;
 	mainCamera.SetCameraView(glm::vec3(120.0f, 0.0, 30.0f), rocketShip.transform->position, glm::vec3(0.0, 1.0, 0.0));
+
+	std::cout << "Object Masses:" << std::endl;
+	std::cout << "Spaceship Mass: " << rocketShip.GetMass() << std::endl;
+	std::cout << "Star Mass: " << Bodies[0].GetMass() << std::endl;
+	std::cout << "Delmar Mass: " << Bodies[1].GetMass() << std::endl;
+	std::cout << "Moon Mass: " << Bodies[2].GetMass() << std::endl;
+	std::cout << "Orion Mass: " << Bodies[3].GetMass() << std::endl;
+	std::cout << "Satellite Mass: " << Bodies[4].GetMass() << std::endl;
 }
 
 void UpdateCamera()
@@ -264,11 +270,14 @@ void ApplyGravity()
 	int currentPlanet = 0;
 	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
 	{
-		float dist = distance(it->transform->position, playerPosition);
-		if (dist < nearest)
+		if (it->tag != "satellite")
 		{
-			nearest = dist;
-			closestPlanetIndex = currentPlanet;
+			float dist = distance(it->transform->position, playerPosition);
+			if (dist < nearest)
+			{
+				nearest = dist;
+				closestPlanetIndex = currentPlanet;
+			}
 		}
 		++currentPlanet;
 	}
@@ -276,8 +285,8 @@ void ApplyGravity()
 
 	glm::vec3 attractDirection = normalize(planetPosition - playerPosition);
 	//calculate gravity strength
-	float m1 = rocketShip.GetColliderSphereRadius();
-	float m2 = Bodies[closestPlanetIndex].GetColliderSphereRadius();
+	float m1 = rocketShip.GetMass();
+	float m2 = Bodies[closestPlanetIndex].GetMass();
 
 	float strength = G * ((m1 * m2) / (nearest * nearest));
 	rocketShip.AddForce(attractDirection * strength);

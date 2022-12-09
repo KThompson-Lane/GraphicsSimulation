@@ -516,6 +516,13 @@ double CThreeDModel::CalcBoundingSphere()
 	return maxRadius;
 }
 
+double CThreeDModel::CalcMass()
+{
+	double r = CalcBoundingSphere();
+	double mass = (4/3) * PI * pow(r, 3);
+	return mass;
+}
+
 /*
  *	Method	: CalcFaceNormals
  *

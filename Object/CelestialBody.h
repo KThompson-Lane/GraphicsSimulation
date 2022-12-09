@@ -6,10 +6,10 @@ class CelestialBody : public Object
 	//private members
 private:
 	glm::vec3 initialPosition;
+	float radius;
 	//public members
 public:
 	int orbitingBodyIndex = -1;
-	float radius;
 	float orbitalSpeed;
 	float orbitAmount = 0.0f;
 	//private functions
