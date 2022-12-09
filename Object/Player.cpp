@@ -93,14 +93,24 @@ bool Player::CheckCollision(Object& other)
 			//Collided object is star
 			//Player velocity is too high
 			//Landing angle is not optimal
-		if (other.tag == "star" || glm::length(velocity) > 0.35f || distance(transform->Up(), glm::normalize(landingPosition)) > 0.3f)
+		if (other.tag == "satellite")
 		{
 			Crash();
-			velocity = glm::vec3(0.0f);
+			velocity = glm::normalize(landingPosition) * (float)(glm::length(velocity) / pow(other.GetMass(), 6));
+			return true;
 		}
-		//Land on body
-		Land(landingPosition, other);
-		return true;
+		else
+		{
+			if (other.tag == "star" || glm::length(velocity) > 0.35f || distance(transform->Up(), glm::normalize(landingPosition)) > 0.3f)
+			{
+				Crash();
+				velocity = glm::vec3(0.0f);
+			}
+
+			//Land on body
+			Land(landingPosition, other);
+			return true;
+		}
 	}
 	else return false;
 }
