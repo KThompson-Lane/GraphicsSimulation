@@ -34,7 +34,7 @@ SpotLight playerSpot;
 #include "Camera/Camera.h"
 Camera mainCamera;
 int lastMouse_x = 0, lastMouse_y = 0;
-
+int cameraIndex = 0;
 ///END MODEL LOADING
 CShader boundShader;
 
@@ -235,11 +235,14 @@ void UpdateCamera()
 	{
 		zoom = zoomBounds.second;
 	}
-
+	
 	//Get camera and pivot positions
-	glm::vec4 pivot = glm::vec4(focusPosition, 1.0);
-	glm::vec4 position = glm::vec4(focusPosition - (mainCamera.GetViewDir() * zoom), 1.0f);
+	glm::vec3 targetPivot = focusPosition;
+	glm::vec3 targetPosition = focusPosition - (mainCamera.GetViewDir() * zoom);
 
+	glm::vec4 currentPosition = glm::vec4(glm::mix(mainCamera.GetPosition(), targetPosition, 0.15), 1.0);
+	glm::vec4 currentPivot = glm::vec4(glm::mix(mainCamera.GetLookAt(), targetPivot, 0.15), 1.0);
+	
 	//Calculate rotation amount
 	float deltaX = (2 * PI / screenWidth); //Left -> right = 360
 	float deltaY = (PI / screenHeight); //Top -> bottom = 180
@@ -249,9 +252,9 @@ void UpdateCamera()
 	glm::quat cameraPitch = glm::angleAxis(pitchIncrement, mainCamera.GetRightVector());
 
 	glm::quat cameraOrientation = cameraYaw * cameraPitch;
-	position = (glm::toMat4(cameraOrientation) * (position - pivot)) + pivot;
+	currentPosition = (glm::toMat4(cameraOrientation) * (currentPosition - currentPivot)) + currentPivot;
 
-	mainCamera.SetCameraView(position, pivot, glm::vec3(0.0, 1.0, 0.0));
+	mainCamera.SetCameraView(currentPosition, currentPivot, glm::vec3(0.0, 1.0, 0.0));
 	
 	lastMouse_x = mouse_x;
 	lastMouse_y = mouse_y;
@@ -510,6 +513,27 @@ void KeyUp(unsigned char key, int x, int y)
 			rocketShip.Reset(glm::vec3(120.0, 0.0, 20.0));
 			focusedObject = &rocketShip;
 		}
+		break;
+	case '.':
+		if (rocketShip.landed)
+		{
+			if (++cameraIndex >= Bodies.size())
+			{
+				cameraIndex = 0;
+			}
+			focusedObject = &Bodies[cameraIndex];
+		}
+		break;
+	case ',':
+		if (rocketShip.landed)
+		{
+			if (--cameraIndex < 0)
+			{
+				cameraIndex = Bodies.size() -1;
+			}
+			focusedObject = &Bodies[cameraIndex];
+		}
+		break;
 	}
 }
 
