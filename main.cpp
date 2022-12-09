@@ -20,10 +20,11 @@ using namespace std;
 #include "Object/Object.h"
 #include "Object/Player.h"
 #include "Object/CelestialBody.h"
-
+#include "Object/Craft.h"
 static const double G = 0.0000113769f;
 Player rocketShip = Player();
 vector<CelestialBody> Bodies;
+Craft satellite = Craft();
 //Lighting
 #include "Light/Light.h"
 vector<PointLight> lights;
@@ -102,7 +103,7 @@ void display()
 	playerSpot.direction = glm::normalize(viewingMatrix * lightMat[2]);
 
 	//Also update satellite light position:
-	lights[1].position = (Bodies[4].transform->position + Bodies[4].transform->Forward() * 0.53f);
+	lights[1].position = (satellite.transform->position +satellite.transform->Forward() * 0.53f);
 	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders, lights, playerSpot);
 
 	//Render planets
@@ -110,6 +111,8 @@ void display()
 	{
 		it->render(viewingMatrix, ProjectionMatrix, showAllColliders, lights, playerSpot);
 	}
+	//Render satellite
+	satellite.render(viewingMatrix, ProjectionMatrix, showAllColliders, lights, playerSpot);
 	glFlush();
 	glutSwapBuffers();
 }
@@ -189,18 +192,17 @@ void init()
 	Bodies[3].SetOrbit(0, 0.0002f);
 
 	//Create Satellite
-	Bodies.push_back(CelestialBody(string("satellite")));
-	Bodies[4].setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
-	Bodies[4].init("Models/Bodies/Satellite/Satellite.obj", glm::vec3(-20.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-	Bodies[4].AddSphereCollider();
-	Bodies[4].SetOrbit(3, 0.02f);
+	satellite.setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
+	satellite.init("Models/Bodies/Satellite/Satellite.obj", glm::vec3(-20.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	satellite.AddSphereCollider();
+	satellite.SetOrbit(3, 0.02f);
 
 	lights.push_back(PointLight());
 	//Create light for the Satellite
 	lights[1].ambient = { 0.1, 0.1, 0.8 };
 	lights[1].diffuse = { 0.1, 0.1, 0.8 };
 	lights[1].specular = glm::vec3(1.0);
-	lights[1].position = Bodies[4].transform->position;
+	lights[1].position = satellite.transform->position;
 
 	lights[1].constant = 1.0f;
 	lights[1].linear = 0.7;
@@ -216,7 +218,7 @@ void init()
 	std::cout << "Delmar Mass: " << Bodies[1].GetMass() << std::endl;
 	std::cout << "Moon Mass: " << Bodies[2].GetMass() << std::endl;
 	std::cout << "Orion Mass: " << Bodies[3].GetMass() << std::endl;
-	std::cout << "Satellite Mass: " << Bodies[4].GetMass() << std::endl;
+	std::cout << "Satellite Mass: " << satellite.GetMass() << std::endl;
 }
 
 void UpdateCamera()
@@ -271,6 +273,7 @@ void UpdateOrbits()
 			Bodies[i].UpdateOrbit(Bodies[orbitindex].transform->position, deltaTime);
 		}
 	}
+	satellite.UpdateOrbit(Bodies[3].transform->position, deltaTime);
 }
 
 void ApplyGravity()
@@ -283,14 +286,11 @@ void ApplyGravity()
 	int currentPlanet = 0;
 	for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
 	{
-		if (it->tag != "satellite")
+		float dist = distance(it->transform->position, playerPosition);
+		if (dist < nearest)
 		{
-			float dist = distance(it->transform->position, playerPosition);
-			if (dist < nearest)
-			{
-				nearest = dist;
-				closestPlanetIndex = currentPlanet;
-			}
+			nearest = dist;
+			closestPlanetIndex = currentPlanet;
 		}
 		++currentPlanet;
 	}
@@ -309,7 +309,7 @@ void CheckCollisions()
 {
 	//Check for collisions
 
-	if (!rocketShip.landed && !rocketShip.destroyed)
+	if (!rocketShip.landed)
 	{
 		for (auto it = Bodies.begin(); it != Bodies.end(); ++it)
 		{
@@ -318,6 +318,21 @@ void CheckCollisions()
 				//If player collides set focused object to collision object and set throttle to zero
 				Throttle = 0.0f;
 				focusedObject = &(*it);
+				if (rocketShip.destroyed)
+				{
+					DestroyPlayer();
+				}
+			}
+		}
+		if (satellite.inOrbit)
+		{
+			//Store ship velocity prior to collision check 
+			glm::vec3 impactVelocity = rocketShip.GetVelocity();
+			if (rocketShip.CheckCollision(satellite))
+			{
+				satellite.CollideWithPlayer(impactVelocity);
+				Throttle = 0.0f;
+				focusedObject = &rocketShip;
 				if (rocketShip.destroyed)
 				{
 					DestroyPlayer();
