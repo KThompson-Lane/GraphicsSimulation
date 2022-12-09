@@ -96,7 +96,7 @@ bool Player::CheckCollision(Object& other)
 		if (other.tag == "satellite")
 		{
 			Crash();
-			velocity = glm::normalize(landingPosition) * (float)(glm::length(velocity) / pow(other.GetMass(), 3));
+			velocity = glm::normalize(landingPosition) * (float)(glm::length(velocity) / pow(other.GetMass(), 6));
 			return true;
 		}
 		else
