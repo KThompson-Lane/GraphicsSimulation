@@ -6,8 +6,8 @@ class Player : public Object
 	//private members
 private:
 	const float rotationSpeed = 0.2f;
-	const float speed = 0.00005;
-	const float terminalVelocity = 3.0f;
+	const float speed = 0.00002;
+	const float terminalVelocity = 2.0f;
 	glm::vec3 velocity;
 
 	Object* landedObject = nullptr;

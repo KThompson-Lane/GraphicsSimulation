@@ -21,7 +21,7 @@ using namespace std;
 #include "Object/Player.h"
 #include "Object/CelestialBody.h"
 
-static const double G = 0.0000069420f;
+static const double G = 0.0000113769f;
 Player rocketShip = Player();
 vector<CelestialBody> Bodies;
 //Lighting
