@@ -64,7 +64,11 @@ void Object::AddBoxCollider()
 void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, std::vector<PointLight>& lights, SpotLight& playerSpotLight)
 {
 	glUseProgram(objectShader.GetProgramObjID());  // use the shader
-
+	//Quick fix for satellite model issue
+	if (tag == "satellite")
+	{
+		glDisable(GL_CULL_FACE);
+	}
 	//Part for displacement shader.
 	glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), "displacement"), amount);
 	

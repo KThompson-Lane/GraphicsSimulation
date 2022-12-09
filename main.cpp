@@ -95,12 +95,14 @@ void display()
 		viewingMatrix = mainCamera.GetViewMatrix();
 	}
 
-	//Before rendering update playerSpot position;
+	//Before rendering update playerSpot position:
 	glm::mat4 lightMat = glm::translate(glm::mat4(1.0), rocketShip.transform->position);
 	lightMat *= glm::toMat4(rocketShip.transform->rotation);
 	playerSpot.position = viewingMatrix * lightMat[3];
 	playerSpot.direction = glm::normalize(viewingMatrix * lightMat[2]);
 
+	//Also update satellite light position:
+	lights[1].position = (Bodies[4].transform->position + Bodies[4].transform->Forward() * 0.53f);
 	rocketShip.render(viewingMatrix, ProjectionMatrix, showPlayerCollider || showAllColliders, lights, playerSpot);
 
 	//Render planets
@@ -192,6 +194,17 @@ void init()
 	Bodies[4].init("Models/Bodies/Satellite/Satellite.obj", glm::vec3(-20.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 	Bodies[4].AddSphereCollider();
 	Bodies[4].SetOrbit(3, 0.02f);
+
+	lights.push_back(PointLight());
+	//Create light for the Satellite
+	lights[1].ambient = { 0.1, 0.1, 0.8 };
+	lights[1].diffuse = { 0.1, 0.1, 0.8 };
+	lights[1].specular = glm::vec3(1.0);
+	lights[1].position = Bodies[4].transform->position;
+
+	lights[1].constant = 1.0f;
+	lights[1].linear = 0.7;
+	lights[1].quadratic = 1.8;
 
 	//Setup Camera
 	focusedObject = &rocketShip;
