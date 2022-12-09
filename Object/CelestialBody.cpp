@@ -6,7 +6,7 @@ void CelestialBody::init(char* modelFile, glm::vec3 initialPosition, glm::vec3 r
 	transform->Move(initialPosition);
 	this->initialPosition = initialPosition;
 	transform->Rotate(rotation.x, rotation.y, rotation.z);
-	radius = GetColliderSphereRadius();
+	radius = model.CalcBoundingSphere();
 }
 
 void CelestialBody::SetOrbit(int orbitingBodyIndex, float speed)
@@ -33,7 +33,7 @@ void CelestialBody::UpdateOrbit(glm::vec3 orbitBodyPosition, float deltaTime)
 }
 std::pair<float, float> CelestialBody::GetMinMaxZoom()
 {
-	float minZoom = GetColliderSphereRadius() * 5;
-	float maxZoom = GetColliderSphereRadius() * 30;
+	float minZoom = radius * 5;
+	float maxZoom = radius * 30;
 	return std::make_pair(minZoom, maxZoom);
 }

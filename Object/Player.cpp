@@ -107,7 +107,8 @@ bool Player::CheckCollision(Object& other)
 
 std::pair<float, float> Player::GetMinMaxZoom()
 {
-	float minZoom = GetColliderSphereRadius() * 1.5;
-	float maxZoom = GetColliderSphereRadius() * 15;
+	float radius = model.CalcBoundingSphere();
+	float minZoom = radius * 1.5;
+	float maxZoom = radius * 15;
 	return std::make_pair(minZoom, maxZoom);
 }

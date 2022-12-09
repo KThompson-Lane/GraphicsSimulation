@@ -22,6 +22,7 @@ private:
 	char* modelFile;
 	COBJLoader objectLoader;
 	glm::mat4 ModelViewMatrix = glm::mat4(1.0);  // matrix for the modelling and viewing
+	double m_Mass;
 //protected members
 protected:
 	CShader boundingShader;
@@ -43,8 +44,8 @@ public:
 	void AddSphereCollider();
 	void AddBoxCollider();
 	void render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool showCollider, std::vector<PointLight>& lights, SpotLight& playerSpotLight);
-	float GetColliderSphereRadius();
 	bool CheckCollision(Object& other);
+	double GetMass() const { return m_Mass; }
 	virtual std::pair<float, float> GetMinMaxZoom() = 0;
 };
 

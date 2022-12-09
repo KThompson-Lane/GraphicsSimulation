@@ -29,6 +29,7 @@ void Object::init(char* modelFile)
 	{
 		std::cout << " model failed to load " << std::endl;
 	}
+	m_Mass = model.CalcMass();
 }
 
 void Object::setupShader(char* shaderName, char* vertPath, char* fragPath)
@@ -131,11 +132,6 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool 
 
 	//Stop using our shader
 	glUseProgram(0);
-}
-
-float Object::GetColliderSphereRadius()
-{
-	return model.CalcBoundingSphere();
 }
 
 bool Object::CheckCollision(Object& other)
