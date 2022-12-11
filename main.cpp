@@ -25,6 +25,7 @@ static const double G = 0.0000113769f;
 Player rocketShip = Player();
 vector<CelestialBody> Bodies;
 Craft satellite = Craft();
+
 //Lighting
 #include "Light/Light.h"
 vector<PointLight> lights;
@@ -47,7 +48,6 @@ float zoom = 10.0f;
 std::pair<float, float> zoomBounds;
 int screenWidth = 600, screenHeight = 600;
 bool SwitchCamera = false;
-float Throttle;
 float Pitch, Yaw, Roll;
 float VerticleThrottle;
 
@@ -66,7 +66,6 @@ float lastFrameTime = 1000.0f;
 void display();				//called in winmain to draw everything to the screen
 void reshape(int width, int height);				//called when the window is resized
 void init();				//called in winmain when the program starts.
-void processKeys();         //called in winmain to process keyboard input
 void idle();		//idle function
 
 /*************    START OF OPENGL FUNCTIONS   ****************/
@@ -389,7 +388,7 @@ void PlayerMovement()
 		float rollInput = (Roll * rocketShip.GetRotationSpeed()) * deltaTime;
 		rocketShip.transform->Rotate(pitchInput, yawInput, rollInput);
 
-		rocketShip.AddForce(rocketShip.transform->Forward() * (Throttle * rocketShip.GetSpeed()));
+		rocketShip.AddForce(rocketShip.transform->Forward() * (accelerate * rocketShip.GetSpeed()));
 		//Replace 0.0003f with a const value for vertical acceleration force;
 		rocketShip.AddForce(rocketShip.transform->Up() * (VerticleThrottle * 0.00008f));
 	}
@@ -428,7 +427,6 @@ void special(int key, int x, int y)
 			break;
 	}
 }
-
 void specialUp(int key, int x, int y)
 {
 	switch (key)
@@ -537,19 +535,6 @@ void KeyUp(unsigned char key, int x, int y)
 	}
 }
 
-void processKeys()
-{
-	//"Forward" axis is Y
-	if (accelerate && Throttle+0.01f < 1.0f)
-	{
-		Throttle += 0.01f;
-	}
-	if (deccelerate && Throttle-0.01f > 0.0f)
-	{
-		Throttle -= 0.01f;
-	}
-}
-
 void updateMousePos(int x, int y)
 {
 	if (MiddlePressed)
@@ -589,7 +574,6 @@ void ScrollWheel(int wheel, int dir, int x, int y)
 void idle()
 {
 	PhysicsSimulation();
-	processKeys();
 	UpdateCamera();
 	glutPostRedisplay();
 }
