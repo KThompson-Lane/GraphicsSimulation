@@ -61,6 +61,7 @@ float Pitch, Yaw, Roll;						//	Floats for rotation input
 float VerticalThrottle;
 bool accelerate;
 bool showPlayerCollider, showAllColliders;	//	Collider drawing
+int orbitSpeedMulti = 0;
 //-----------------------------------------------------------------------
 
 //----------------------------- Function declarations -----------------------------
@@ -213,7 +214,7 @@ void Init()
 	//	Create planet 'Orion' with sphere collider orbiting the star
 	Bodies.push_back(CelestialBody(string("orion")));
 	Bodies[3].setupShader("BasicView", "glslfiles/basicTransformationsWithDisplacement.vert", "glslfiles/basicTransformationsWithDisplacement.frag");
-	Bodies[3].init("Models/Bodies/Orion/Orion.obj", glm::vec3(-110.0f, 0.0f, -60.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	Bodies[3].init("Models/Bodies/Orion/Orion.obj", glm::vec3(-150.0f, 0.0f, -80.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 	Bodies[3].AddSphereCollider();
 	Bodies[3].SetOrbit(0, 0.0002f);
 
@@ -334,11 +335,11 @@ void UpdateOrbits()
 		if (Bodies[i].orbitingBodyIndex != -1)
 		{
 			int orbitindex = Bodies[i].orbitingBodyIndex;
-			Bodies[i].UpdateOrbit(Bodies[orbitindex].transform->position, deltaTime);
+			Bodies[i].UpdateOrbit(Bodies[orbitindex].transform->position, deltaTime * pow(2, orbitSpeedMulti));
 		}
 	}
 	//	Update satellite orbit position using deltaTime
-	satellite.UpdateOrbit(Bodies[3].transform->position, deltaTime);
+	satellite.UpdateOrbit(Bodies[3].transform->position, deltaTime * pow(2, orbitSpeedMulti));
 }
 
 /*
@@ -499,6 +500,7 @@ void PlayerMovement()
 	{
 		rocketShip.TakeOff();
 		focusedObject = &rocketShip;
+		orbitSpeedMulti = 0;
 	}
 	//	Update rocket position based on timestep
 	rocketShip.UpdatePosition(deltaTime);
@@ -628,6 +630,7 @@ void KeyUp(unsigned char key, int x, int y)
 			accelerate = false;
 			rocketShip.Reset(glm::vec3(120.0, 0.0, 20.0));
 			focusedObject = &rocketShip;
+			orbitSpeedMulti = 0;
 			//	Set clear colour back to normal
 			glClearColor(0.0, 0.0, 0.0, 0.0);
 		}
@@ -651,6 +654,25 @@ void KeyUp(unsigned char key, int x, int y)
 				cameraIndex = Bodies.size() -1;
 			}
 			focusedObject = &Bodies[cameraIndex];
+		}
+		break;
+	//	'[' and ']' change orbit speed focus when player is landed
+	case '[':
+		if (rocketShip.landed)
+		{
+			if (--orbitSpeedMulti < 0)
+			{
+				orbitSpeedMulti = 0;
+			}
+		}
+		break;
+	case ']':
+		if (rocketShip.landed)
+		{
+			if (++orbitSpeedMulti > 5)
+			{
+				orbitSpeedMulti = 5;
+			}
 		}
 		break;
 	}
