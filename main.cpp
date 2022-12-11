@@ -225,6 +225,9 @@ void UpdateCamera()
 	zoomBounds = focusedObject->GetMinMaxZoom();
 	glm::vec3 focusPosition = focusedObject->transform->position;
 	
+	float transitionAmount = 0.05f;
+	if (focusedObject->tag == "player")
+		transitionAmount = 0.95f;
 	//Check zoom is within boundaries
 	if (zoom < zoomBounds.first)
 	{
@@ -239,8 +242,8 @@ void UpdateCamera()
 	glm::vec3 targetPivot = focusPosition;
 	glm::vec3 targetPosition = focusPosition - (mainCamera.GetViewDir() * zoom);
 
-	glm::vec4 currentPosition = glm::vec4(glm::mix(mainCamera.GetPosition(), targetPosition, 0.15), 1.0);
-	glm::vec4 currentPivot = glm::vec4(glm::mix(mainCamera.GetLookAt(), targetPivot, 0.15), 1.0);
+	glm::vec4 currentPosition = glm::vec4(glm::mix(mainCamera.GetPosition(), targetPosition, transitionAmount), 1.0);
+	glm::vec4 currentPivot = glm::vec4(glm::mix(mainCamera.GetLookAt(), targetPivot, transitionAmount), 1.0);
 	
 	//Calculate rotation amount
 	float deltaX = (2 * PI / screenWidth); //Left -> right = 360
