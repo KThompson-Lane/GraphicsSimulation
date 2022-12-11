@@ -58,7 +58,7 @@ int screenWidth = 600, screenHeight = 600;
 int	mouse_x=0, mouse_y=0;					//  Current mouse coordinates
 bool MiddlePressed = false;
 float Pitch, Yaw, Roll;						//	Floats for rotation input
-float VerticleThrottle;
+float VerticalThrottle;
 bool accelerate;
 bool showPlayerCollider, showAllColliders;	//	Collider drawing
 //-----------------------------------------------------------------------
@@ -490,10 +490,10 @@ void PlayerMovement()
 
 		//	Add forces based on forward and vertical thrust
 		rocketShip.AddForce(rocketShip.transform->Forward() * (accelerate * rocketShip.GetSpeed()));
-		rocketShip.AddForce(rocketShip.transform->Up() * (VerticleThrottle * 0.00008f));
+		rocketShip.AddForce(rocketShip.transform->Up() * (VerticalThrottle * 0.00008f));
 	}
 	//	If we're landed and thrusting vertically, take off
-	else if (VerticleThrottle == 1.0f && !rocketShip.destroyed && rocketShip.landed)
+	else if (VerticalThrottle == 1.0f && !rocketShip.destroyed && rocketShip.landed)
 	{
 		rocketShip.TakeOff();
 		focusedObject = &rocketShip;
@@ -590,7 +590,7 @@ void KeyDown(unsigned char key, int x, int y)
 			break;
 		//	Space is vertical throttle input
 		case ' ':
-			VerticleThrottle = 1.0f;
+			VerticalThrottle = 1.0f;
 			break;
 	}
 }
@@ -612,7 +612,7 @@ void KeyUp(unsigned char key, int x, int y)
 		Roll = 0.0f;
 		break;
 	case ' ':
-		VerticleThrottle = 0.0f;
+		VerticalThrottle = 0.0f;
 		break;
 	//	If 'f' key pressed and player isn't destroyed, activate player spotlight
 	case 'f':
