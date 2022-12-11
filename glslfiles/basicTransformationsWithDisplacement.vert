@@ -13,11 +13,15 @@ out vec2 ex_TexCoord;  // exiting texture coord
 out vec3 ex_Normal;    // exiting normal transformed by the normal matrix
 out vec3 ex_PositionEye; //Exiting position in eyespace
 
-uniform float displacement;
+uniform vec3 deformation;
 
 void main(void)
 {
-	vec3 newVertexPos = (-in_Normal * displacement) + in_Position;
+	vec3 newVertexPos = in_Position;
+	if(deformation != 0.0f)
+	{
+		newVertexPos =  (in_Position + deformation) + (in_Normal * deformation);
+	}
 
 	gl_Position = ProjectionMatrix * ModelViewMatrix * vec4(newVertexPos, 1.0);
 

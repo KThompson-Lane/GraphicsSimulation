@@ -26,7 +26,7 @@ private:
 //protected members
 protected:
 	CShader boundingShader;
-	float amount = 0.0f;
+	glm::vec3 deformation = glm::vec3(0.0);
 //public members
 public:
 	CThreeDModel model;

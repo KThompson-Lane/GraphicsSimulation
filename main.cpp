@@ -630,7 +630,6 @@ void KeyUp(unsigned char key, int x, int y)
 			focusedObject = &rocketShip;
 			//	Set clear colour back to normal
 			glClearColor(0.0, 0.0, 0.0, 0.0);
-
 		}
 		break;
 	//	'.' and ',' change camera planet focus when player is landed

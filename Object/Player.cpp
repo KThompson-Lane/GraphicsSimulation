@@ -61,7 +61,7 @@ void Player::TakeOff()
 
 void Player::Crash()
 {
-	this->amount += glm::length(velocity) * 10;
+	this->deformation += - (velocity * 10.0f);
 	destroyed = true;
 }
 
@@ -70,7 +70,7 @@ void Player::Reset(glm::vec3 resetPosition)
 	transform->Reset();
 	transform->Move(resetPosition);
 	destroyed = false;
-	amount = 0.0f;
+	deformation = glm::vec3(0.0f);
 	velocity = glm::vec3(0.0f);
 	landedObject = nullptr;
 	landed = false;

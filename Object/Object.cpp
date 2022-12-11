@@ -69,9 +69,9 @@ void Object::render(glm::mat4& viewingMatrix, glm::mat4& ProjectionMatrix, bool 
 	{
 		glDisable(GL_CULL_FACE);
 	}
-	//Part for displacement shader.
-	glUniform1f(glGetUniformLocation(objectShader.GetProgramObjID(), "displacement"), amount);
-	
+	//Set deformation value
+	glUniform3f(glGetUniformLocation(objectShader.GetProgramObjID(), "deformation"), deformation.x, deformation.y, deformation.z);
+
 	//Set the projection matrix in the shader
 	GLuint projMatLocation = glGetUniformLocation(objectShader.GetProgramObjID(), "ProjectionMatrix");
 	glUniformMatrix4fv(projMatLocation, 1, GL_FALSE, &ProjectionMatrix[0][0]);
