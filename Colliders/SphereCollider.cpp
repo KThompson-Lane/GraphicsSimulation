@@ -132,10 +132,15 @@ bool SphereCollider::InCollision(Collider* othercol)
 
 glm::vec3 SphereCollider::CalculatePenetration(SphereCollider* othercol)
 {
-	glm::vec3 difference = transform->position - othercol->transform->position;
-	
-	float amount = glm::length(difference) - (radius + othercol->GetRadius());
-	return glm::normalize(difference) * amount;
+	//First inverse transform other collider position into local space
+	glm::vec3 localSphereCentre = glm::inverse(transform->ModelMatrix) * glm::vec4(othercol->transform->position, 1.0);
+
+	//Our centre is 0,0,0
+	float distance = glm::length(localSphereCentre);
+	float radiusSum = this->radius + othercol->GetRadius();
+	glm::vec3 translation = glm::normalize(-localSphereCentre) * (radiusSum - distance);
+	glm::vec3 WorldTranslation = transform->ModelMatrix * glm::vec4(translation, 1.0);
+	return WorldTranslation;
 }
 
 glm::vec3 SphereCollider::CalculatePenetration(Collider* othercol)

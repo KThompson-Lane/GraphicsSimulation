@@ -37,7 +37,7 @@ bool Craft::CheckCollision(Object& other)
 		transform->Move(translation);
 
 		//Calculate landing position relative to planet centre, then check crash conditions
-		glm::vec3 landingPos = translation - other.transform->position;
+		glm::vec3 landingPos= translation - other.transform->position;
 		landed = true;
 		inOrbit = false;
 		velocity = glm::vec3(0.0f);
