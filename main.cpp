@@ -316,6 +316,8 @@ void DestroyPlayer()
 	cockpitCam = false;
 	//	Turn off player spotlight
 	playerSpot.active = false;
+	//	Set clear colour to indicate player destruction
+	glClearColor(0.2, 0.0, 0.0, 0.8);	
 }
 
 /*
@@ -626,6 +628,9 @@ void KeyUp(unsigned char key, int x, int y)
 			accelerate = false;
 			rocketShip.Reset(glm::vec3(120.0, 0.0, 20.0));
 			focusedObject = &rocketShip;
+			//	Set clear colour back to normal
+			glClearColor(0.0, 0.0, 0.0, 0.0);
+
 		}
 		break;
 	//	'.' and ',' change camera planet focus when player is landed
