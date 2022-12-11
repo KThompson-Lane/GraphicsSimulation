@@ -84,13 +84,8 @@ bool BoxCollider::InCollision(SphereCollider* otherCol)
 	//First inverse transform other collider position into local space
 	glm::vec3 localSphereCentre = glm::inverse(transform->ModelMatrix) * glm::vec4(otherCol->transform->position, 1.0);
 
-	//glm::vec3 clamped = glm::clamp(localSphereCentre, -halfSize, halfSize);
-	//Testing individually clamped values:
-	float closeX = std::max(-halfSize.x, std::min(localSphereCentre.x, halfSize.x));
-	float closeY = std::max(-halfSize.y, std::min(localSphereCentre.y, halfSize.y));
-	float closeZ = std::max(-halfSize.z, std::min(localSphereCentre.z, halfSize.z));
+	glm::vec3 closest = glm::clamp(localSphereCentre, -halfSize, halfSize);
 
-	glm::vec3 closest = glm::vec3(closeX, closeY, closeZ);
 	glm::vec3 difference = localSphereCentre - closest;
 	return glm::length(difference) < otherCol->GetRadius();
 }
@@ -109,13 +104,7 @@ glm::vec3 BoxCollider::CalculatePenetration(SphereCollider* otherCol)
 	//First inverse transform other collider position into local space
 	glm::vec3 localSphereCentre = glm::inverse(transform->ModelMatrix) * glm::vec4(otherCol->transform->position, 1.0);
 
-	//glm::vec3 clamped = glm::clamp(localSphereCentre, -halfSize, halfSize);
-	//Testing individually clamped values:
-	float closeX = std::max(-halfSize.x, std::min(localSphereCentre.x, halfSize.x));
-	float closeY = std::max(-halfSize.y, std::min(localSphereCentre.y, halfSize.y));
-	float closeZ = std::max(-halfSize.z, std::min(localSphereCentre.z, halfSize.z));
-
-	glm::vec3 closest = glm::vec3(closeX, closeY, closeZ);
+	glm::vec3 closest = glm::clamp(localSphereCentre, -halfSize, halfSize);
 	glm::vec3 difference = localSphereCentre - closest;
 	glm::vec3 translation = (otherCol->GetRadius() - glm::length(difference)) * glm::normalize(difference);
 	glm::vec3 WorldTranslation = transform->ModelMatrix * glm::vec4(translation, 1.0);

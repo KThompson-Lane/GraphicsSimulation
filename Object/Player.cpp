@@ -80,9 +80,6 @@ bool Player::CheckCollision(Object& other)
 {
 	if (Object::CheckCollision(other))
 	{
-		//Old code, keep in case needed
-		glm::vec3 direction = normalize(transform->position - other.transform->position);
-
 		glm::vec3 translation = collider->CalculatePenetration(other.collider);
 		transform->Move(translation);
 
